@@ -14,6 +14,7 @@ func DBConnect(connectionString string) (context.Context, *pgx.Conn) {
 	if err != nil {
 		log.Fatalf("unable to connect database: %s", connectionString)
 	}
+	log.Printf("database connected succesfully: %s", connectionString)
 	return ctx, conn
 
 }
