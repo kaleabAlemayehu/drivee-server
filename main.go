@@ -14,9 +14,8 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalln("unable to load environment variables")
-
 	}
-	ctx, conn := connection.DBConnect(os.Getenv("DB_STRING"))
+	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
 	_ = ctx
 	_ = conn
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
