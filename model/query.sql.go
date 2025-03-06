@@ -10,23 +10,32 @@ import (
 )
 
 const listOwner = `-- name: ListOwner :many
-SELECT (id, first_name, middle_name, last_name, email, phone_number,account_number, bank_name) FROM owner
+SELECT id, first_name, middle_name, last_name, email, phone_number, account_number, bank_name FROM owner
 ORDER BY email
 `
 
-func (q *Queries) ListOwner(ctx context.Context) ([]interface{}, error) {
+func (q *Queries) ListOwner(ctx context.Context) ([]Owner, error) {
 	rows, err := q.db.Query(ctx, listOwner)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []interface{}
+	var items []Owner
 	for rows.Next() {
-		var column_1 interface{}
-		if err := rows.Scan(&column_1); err != nil {
+		var i Owner
+		if err := rows.Scan(
+			&i.ID,
+			&i.FirstName,
+			&i.MiddleName,
+			&i.LastName,
+			&i.Email,
+			&i.PhoneNumber,
+			&i.AccountNumber,
+			&i.BankName,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, column_1)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
