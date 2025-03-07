@@ -24,9 +24,10 @@ func main() {
 	}
 
 	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
+	handler := handlers.NewHandler(ctx, conn)
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodGet), handlers.HandleGetAllOwner(ctx, conn))
-	mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handlers.HandleGetOwner(ctx, conn))
+	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodGet), handler.HandleGetAllOwner(ctx, conn))
+	mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handler.HandleGetOwner(ctx, conn))
 	// mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handlers.HandleGetAllOwner)
 
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)

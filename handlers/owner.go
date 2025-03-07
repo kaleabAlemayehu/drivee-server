@@ -13,11 +13,21 @@ import (
 	model "github.com/kaleabAlemayehu/drivee-server/model"
 )
 
-func HandleGetAllOwner(ctx context.Context, conn *pgx.Conn) http.HandlerFunc {
+type handler struct {
+	query *model.Queries
+	ctx   context.Context
+}
+
+func NewHandler(ctx context.Context, conn *pgx.Conn) *handler {
+	query := model.New(conn)
+	return &handler{query: query, ctx: ctx}
+}
+
+func (h *handler) HandleGetAllOwner(ctx context.Context, conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO:  fetch owner form database
-		query := model.New(conn)
-		owners, err := query.ListOwner(ctx)
+
+		owners, err := h.query.ListOwner(h.ctx)
 		if err != nil {
 			log.Println(err.Error())
 			http.Error(w, "unable to fetch owner list", http.StatusInternalServerError)
@@ -33,10 +43,9 @@ func HandleGetAllOwner(ctx context.Context, conn *pgx.Conn) http.HandlerFunc {
 		}
 	}
 }
-func HandleGetOwner(ctx context.Context, conn *pgx.Conn) http.HandlerFunc {
+func (h *handler) HandleGetOwner(ctx context.Context, conn *pgx.Conn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: fetch owner form database
-		query := model.New(conn)
 		id, err := uuid.Parse(r.PathValue("id"))
 		if err != nil {
 			log.Println("unable to parse uuid that sent")
@@ -44,7 +53,7 @@ func HandleGetOwner(ctx context.Context, conn *pgx.Conn) http.HandlerFunc {
 			return
 
 		}
-		owner, err := query.GetOwner(ctx, id)
+		owner, err := h.query.GetOwner(h.ctx, id)
 		if err != nil {
 			log.Println(err.Error())
 			http.Error(w, "unable to fetch owner", http.StatusInternalServerError)
