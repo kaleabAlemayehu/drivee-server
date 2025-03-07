@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	connection "github.com/kaleabAlemayehu/drivee-server/connection"
 	"github.com/kaleabAlemayehu/drivee-server/handlers"
 )
 
@@ -21,8 +22,12 @@ func main() {
 		port = 9999
 		log.Printf("port is not specified\n running on default port :%d \n", port)
 	}
+
+	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodGet), handlers.HandleGetAllOwner)
+	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodGet), handlers.HandleGetAllOwner(ctx, conn))
+	mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handlers.HandleGetOwner(ctx, conn))
+	// mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handlers.HandleGetAllOwner)
 
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
