@@ -28,7 +28,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodGet), handler.HandleGetAllOwner)
 	mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handler.HandleGetOwner)
-	// mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handlers.HandleGetAllOwner)
-
+	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodPost), handler.HandleInsertOwner)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
