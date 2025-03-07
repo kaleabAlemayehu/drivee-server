@@ -10,12 +10,14 @@ import (
 )
 
 type Owner struct {
-	ID            uuid.UUID   `json:"id"`
-	FirstName     string      `json:"firstName"`
-	MiddleName    pgtype.Text `json:"middleName"`
-	LastName      string      `json:"lastName"`
-	Email         string      `json:"email"`
-	PhoneNumber   string      `json:"phoneNumber"`
-	AccountNumber string      `json:"accountNumber"`
-	BankName      string      `json:"bankName"`
+	ID            uuid.UUID        `json:"id"`
+	FirstName     string           `json:"firstName"`
+	MiddleName    pgtype.Text      `json:"middleName"`
+	LastName      string           `json:"lastName"`
+	Email         string           `json:"email"`
+	PhoneNumber   string           `json:"phoneNumber"`
+	AccountNumber string           `json:"accountNumber"`
+	BankName      string           `json:"bankName"`
+	CreatedAt     pgtype.Timestamp `json:"createdAt"`
+	UpdatedAt     pgtype.Timestamp `json:"updatedAt"`
 }
