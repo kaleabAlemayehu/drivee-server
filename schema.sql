@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS owner (
   middle_name VARCHAR(24),
   last_name VARCHAR(24) NOT NULL,
   email VARCHAR(50) NOT NULL,
+  password TEXT NOT NULL,
   phone_number VARCHAR(15) NOT NULL,
   account_number VARCHAR(15) NOT NULL,
   bank_name VARCHAR(15) NOT NULL,

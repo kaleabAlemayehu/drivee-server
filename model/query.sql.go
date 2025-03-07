@@ -13,19 +13,20 @@ import (
 )
 
 const getOwner = `-- name: GetOwner :one
-SELECT id, first_name, middle_name, last_name, email, phone_number, account_number, bank_name FROM owner
+SELECT id, first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name FROM owner
 WHERE id = $1 LIMIT 1
 `
 
 type GetOwnerRow struct {
 	ID            uuid.UUID   `json:"id"`
-	FirstName     string      `json:"firstName"`
-	MiddleName    pgtype.Text `json:"middleName"`
-	LastName      string      `json:"lastName"`
+	FirstName     string      `json:"first_name"`
+	MiddleName    pgtype.Text `json:"middle_name"`
+	LastName      string      `json:"last_name"`
 	Email         string      `json:"email"`
-	PhoneNumber   string      `json:"phoneNumber"`
-	AccountNumber string      `json:"accountNumber"`
-	BankName      string      `json:"bankName"`
+	Password      string      `json:"password"`
+	PhoneNumber   string      `json:"phone_number"`
+	AccountNumber string      `json:"account_number"`
+	BankName      string      `json:"bank_name"`
 }
 
 func (q *Queries) GetOwner(ctx context.Context, id uuid.UUID) (GetOwnerRow, error) {
@@ -37,9 +38,55 @@ func (q *Queries) GetOwner(ctx context.Context, id uuid.UUID) (GetOwnerRow, erro
 		&i.MiddleName,
 		&i.LastName,
 		&i.Email,
+		&i.Password,
 		&i.PhoneNumber,
 		&i.AccountNumber,
 		&i.BankName,
+	)
+	return i, err
+}
+
+const insertOwner = `-- name: InsertOwner :one
+INSERT INTO owner (first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name)
+VALUES ( $1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name, created_at, updated_at
+`
+
+type InsertOwnerParams struct {
+	FirstName     string      `json:"first_name"`
+	MiddleName    pgtype.Text `json:"middle_name"`
+	LastName      string      `json:"last_name"`
+	Email         string      `json:"email"`
+	Password      string      `json:"password"`
+	PhoneNumber   string      `json:"phone_number"`
+	AccountNumber string      `json:"account_number"`
+	BankName      string      `json:"bank_name"`
+}
+
+func (q *Queries) InsertOwner(ctx context.Context, arg InsertOwnerParams) (Owner, error) {
+	row := q.db.QueryRow(ctx, insertOwner,
+		arg.FirstName,
+		arg.MiddleName,
+		arg.LastName,
+		arg.Email,
+		arg.Password,
+		arg.PhoneNumber,
+		arg.AccountNumber,
+		arg.BankName,
+	)
+	var i Owner
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.AccountNumber,
+		&i.BankName,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -51,13 +98,13 @@ ORDER BY email
 
 type ListOwnerRow struct {
 	ID            uuid.UUID   `json:"id"`
-	FirstName     string      `json:"firstName"`
-	MiddleName    pgtype.Text `json:"middleName"`
-	LastName      string      `json:"lastName"`
+	FirstName     string      `json:"first_name"`
+	MiddleName    pgtype.Text `json:"middle_name"`
+	LastName      string      `json:"last_name"`
 	Email         string      `json:"email"`
-	PhoneNumber   string      `json:"phoneNumber"`
-	AccountNumber string      `json:"accountNumber"`
-	BankName      string      `json:"bankName"`
+	PhoneNumber   string      `json:"phone_number"`
+	AccountNumber string      `json:"account_number"`
+	BankName      string      `json:"bank_name"`
 }
 
 func (q *Queries) ListOwner(ctx context.Context) ([]ListOwnerRow, error) {
