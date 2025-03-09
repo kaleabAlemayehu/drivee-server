@@ -22,12 +22,24 @@ func main() {
 		port = 9999
 		log.Printf("port is not specified\n running on default port :%d \n", port)
 	}
-
 	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
+
 	handler := handlers.NewHandler(ctx, conn)
+	owner := http.NewServeMux()
+	owner.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllOwner)
+	owner.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetOwner)
+	owner.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateOwner)
+	owner.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertOwner)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodGet), handler.HandleGetAllOwner)
-	mux.HandleFunc(fmt.Sprintf("%s /api/owner/{id}", http.MethodGet), handler.HandleGetOwner)
-	mux.HandleFunc(fmt.Sprintf("%s /api/owner", http.MethodPost), handler.HandleInsertOwner)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
+	mux.Handle("/api/owner/", http.StripPrefix("/api/owner", owner))
+
+	server := http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalf("unable to run the server %v \n", err.Error())
+	}
 }
