@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"reflect"
 
 	"encoding/json"
 	"log"
@@ -109,4 +110,47 @@ func (h *handler) HandleInsertOwner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (h *handler) HandleUpdateOwner(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println("unable to get id parameter")
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println("unable to get body for the request")
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	var Body model.UpdatedOwnerParams
+	err = json.Unmarshal(body, &Body)
+	if err != nil {
+		log.Println("unable to unmarshal body from the request bytes")
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	Body.ID = id
+	v := reflect.ValueOf(Body)
+	for i := range v.NumField() {
+		if v.Field(i).Interface() == "" {
+			log.Println("unable to unmarshal body from the request bytes")
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+	}
+	res, err := h.query.UpdatedOwner(h.ctx, Body)
+	if err != nil {
+		log.Println("the query is not excuted")
+		http.Error(w, "bad request body", http.StatusBadRequest)
+		return
+	}
+	err = json.NewEncoder(w).Encode(&res)
+	if err != nil {
+		log.Println("unable to encode and send response")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 }

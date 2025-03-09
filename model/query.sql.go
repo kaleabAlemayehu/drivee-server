@@ -135,3 +135,49 @@ func (q *Queries) ListOwner(ctx context.Context) ([]ListOwnerRow, error) {
 	}
 	return items, nil
 }
+
+const updatedOwner = `-- name: UpdatedOwner :one
+UPDATE owner SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9 WHERE  id = $1
+RETURNING id, first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name, created_at, updated_at
+`
+
+type UpdatedOwnerParams struct {
+	ID            uuid.UUID   `json:"id"`
+	FirstName     string      `json:"first_name"`
+	MiddleName    pgtype.Text `json:"middle_name"`
+	LastName      string      `json:"last_name"`
+	Email         string      `json:"email"`
+	Password      string      `json:"password"`
+	PhoneNumber   string      `json:"phone_number"`
+	AccountNumber string      `json:"account_number"`
+	BankName      string      `json:"bank_name"`
+}
+
+func (q *Queries) UpdatedOwner(ctx context.Context, arg UpdatedOwnerParams) (Owner, error) {
+	row := q.db.QueryRow(ctx, updatedOwner,
+		arg.ID,
+		arg.FirstName,
+		arg.MiddleName,
+		arg.LastName,
+		arg.Email,
+		arg.Password,
+		arg.PhoneNumber,
+		arg.AccountNumber,
+		arg.BankName,
+	)
+	var i Owner
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.AccountNumber,
+		&i.BankName,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
