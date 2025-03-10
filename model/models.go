@@ -5,9 +5,159 @@
 package model
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type FuelType string
+
+const (
+	FuelTypeGas      FuelType = "gas"
+	FuelTypeDiesel   FuelType = "diesel"
+	FuelTypeElectric FuelType = "electric"
+	FuelTypeHybrid   FuelType = "hybrid"
+)
+
+func (e *FuelType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = FuelType(s)
+	case string:
+		*e = FuelType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for FuelType: %T", src)
+	}
+	return nil
+}
+
+type NullFuelType struct {
+	FuelType FuelType `json:"fuel_type"`
+	Valid    bool     `json:"valid"` // Valid is true if FuelType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullFuelType) Scan(value interface{}) error {
+	if value == nil {
+		ns.FuelType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.FuelType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullFuelType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.FuelType), nil
+}
+
+type StatusType string
+
+const (
+	StatusTypeAvaliable StatusType = "avaliable"
+	StatusTypeRented    StatusType = "rented"
+	StatusTypeInactive  StatusType = "inactive"
+)
+
+func (e *StatusType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = StatusType(s)
+	case string:
+		*e = StatusType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for StatusType: %T", src)
+	}
+	return nil
+}
+
+type NullStatusType struct {
+	StatusType StatusType `json:"status_type"`
+	Valid      bool       `json:"valid"` // Valid is true if StatusType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullStatusType) Scan(value interface{}) error {
+	if value == nil {
+		ns.StatusType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.StatusType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullStatusType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.StatusType), nil
+}
+
+type Transmission string
+
+const (
+	TransmissionManual    Transmission = "manual"
+	TransmissionAutomatic Transmission = "automatic"
+)
+
+func (e *Transmission) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Transmission(s)
+	case string:
+		*e = Transmission(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Transmission: %T", src)
+	}
+	return nil
+}
+
+type NullTransmission struct {
+	Transmission Transmission `json:"transmission"`
+	Valid        bool         `json:"valid"` // Valid is true if Transmission is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTransmission) Scan(value interface{}) error {
+	if value == nil {
+		ns.Transmission, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Transmission.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTransmission) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Transmission), nil
+}
+
+type Car struct {
+	ID           uuid.UUID        `json:"id"`
+	OwnerID      uuid.UUID        `json:"owner_id"`
+	Make         string           `json:"make"`
+	Model        string           `json:"model"`
+	Year         string           `json:"year"`
+	LicensePlate string           `json:"license_plate"`
+	VinNumber    string           `json:"vin_number"`
+	Transmission Transmission     `json:"transmission"`
+	FuelType     FuelType         `json:"fuel_type"`
+	Mileage      int32            `json:"mileage"`
+	Location     interface{}      `json:"location"`
+	PricePerHour pgtype.Numeric   `json:"price_per_hour"`
+	Status       StatusType       `json:"status"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
 
 type User struct {
 	ID            uuid.UUID        `json:"id"`
