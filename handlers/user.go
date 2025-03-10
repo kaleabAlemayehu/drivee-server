@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"reflect"
@@ -11,20 +10,9 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
 	model "github.com/kaleabAlemayehu/drivee-server/model"
 )
-
-type handler struct {
-	query *model.Queries
-	ctx   context.Context
-}
-
-func NewHandler(ctx context.Context, conn *pgx.Conn) *handler {
-	query := model.New(conn)
-	return &handler{query: query, ctx: ctx}
-}
 
 func (h *handler) HandleGetAllUser(w http.ResponseWriter, r *http.Request) {
 
