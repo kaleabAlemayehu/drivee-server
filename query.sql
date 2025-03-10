@@ -15,3 +15,10 @@ RETURNING *;
 -- name: UpdateUser :one
 UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9, driver_license= $10, is_owner=$11, is_renter=$12 WHERE  id = $1
 RETURNING *;
+
+
+
+-- name: ListCars :many
+SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year;
+
+
