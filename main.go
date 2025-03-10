@@ -25,14 +25,14 @@ func main() {
 	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
 
 	handler := handlers.NewHandler(ctx, conn)
-	owner := http.NewServeMux()
-	owner.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllOwner)
-	owner.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetOwner)
-	owner.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateOwner)
-	owner.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertOwner)
+	userRouter := http.NewServeMux()
+	userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllUser)
+	userRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetUser)
+	userRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateUser)
+	userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertUser)
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/owner/", http.StripPrefix("/api/owner", owner))
+	mux.Handle("/api/user/", http.StripPrefix("/api/user", userRouter))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

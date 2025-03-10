@@ -12,26 +12,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getOwner = `-- name: GetOwner :one
-SELECT id, first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name FROM owner
+const getUser = `-- name: GetUser :one
+SELECT id, first_name, middle_name, last_name, email, password, driver_license, is_owner, is_renter, phone_number, account_number, bank_name FROM users
 WHERE id = $1 LIMIT 1
 `
 
-type GetOwnerRow struct {
+type GetUserRow struct {
 	ID            uuid.UUID   `json:"id"`
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
 	LastName      string      `json:"last_name"`
 	Email         string      `json:"email"`
 	Password      string      `json:"password"`
+	DriverLicense string      `json:"driver_license"`
+	IsOwner       pgtype.Bool `json:"is_owner"`
+	IsRenter      pgtype.Bool `json:"is_renter"`
 	PhoneNumber   string      `json:"phone_number"`
 	AccountNumber string      `json:"account_number"`
 	BankName      string      `json:"bank_name"`
 }
 
-func (q *Queries) GetOwner(ctx context.Context, id uuid.UUID) (GetOwnerRow, error) {
-	row := q.db.QueryRow(ctx, getOwner, id)
-	var i GetOwnerRow
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
+	row := q.db.QueryRow(ctx, getUser, id)
+	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
@@ -39,6 +42,9 @@ func (q *Queries) GetOwner(ctx context.Context, id uuid.UUID) (GetOwnerRow, erro
 		&i.LastName,
 		&i.Email,
 		&i.Password,
+		&i.DriverLicense,
+		&i.IsOwner,
+		&i.IsRenter,
 		&i.PhoneNumber,
 		&i.AccountNumber,
 		&i.BankName,
@@ -46,35 +52,37 @@ func (q *Queries) GetOwner(ctx context.Context, id uuid.UUID) (GetOwnerRow, erro
 	return i, err
 }
 
-const insertOwner = `-- name: InsertOwner :one
-INSERT INTO owner (first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name)
-VALUES ( $1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name, created_at, updated_at
+const insertUser = `-- name: InsertUser :one
+INSERT INTO users (first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name)
+VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
 `
 
-type InsertOwnerParams struct {
+type InsertUserParams struct {
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
 	LastName      string      `json:"last_name"`
 	Email         string      `json:"email"`
 	Password      string      `json:"password"`
+	DriverLicense string      `json:"driver_license"`
 	PhoneNumber   string      `json:"phone_number"`
 	AccountNumber string      `json:"account_number"`
 	BankName      string      `json:"bank_name"`
 }
 
-func (q *Queries) InsertOwner(ctx context.Context, arg InsertOwnerParams) (Owner, error) {
-	row := q.db.QueryRow(ctx, insertOwner,
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, insertUser,
 		arg.FirstName,
 		arg.MiddleName,
 		arg.LastName,
 		arg.Email,
 		arg.Password,
+		arg.DriverLicense,
 		arg.PhoneNumber,
 		arg.AccountNumber,
 		arg.BankName,
 	)
-	var i Owner
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
@@ -82,46 +90,55 @@ func (q *Queries) InsertOwner(ctx context.Context, arg InsertOwnerParams) (Owner
 		&i.LastName,
 		&i.Email,
 		&i.Password,
+		&i.DriverLicense,
 		&i.PhoneNumber,
 		&i.AccountNumber,
 		&i.BankName,
+		&i.IsOwner,
+		&i.IsRenter,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
 }
 
-const listOwner = `-- name: ListOwner :many
-SELECT id, first_name, middle_name, last_name, email, phone_number,account_number, bank_name FROM owner
+const listUser = `-- name: ListUser :many
+SELECT id, first_name, middle_name, last_name, email, driver_license, is_owner, is_renter, phone_number,account_number, bank_name FROM users
 ORDER BY email
 `
 
-type ListOwnerRow struct {
+type ListUserRow struct {
 	ID            uuid.UUID   `json:"id"`
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
 	LastName      string      `json:"last_name"`
 	Email         string      `json:"email"`
+	DriverLicense string      `json:"driver_license"`
+	IsOwner       pgtype.Bool `json:"is_owner"`
+	IsRenter      pgtype.Bool `json:"is_renter"`
 	PhoneNumber   string      `json:"phone_number"`
 	AccountNumber string      `json:"account_number"`
 	BankName      string      `json:"bank_name"`
 }
 
-func (q *Queries) ListOwner(ctx context.Context) ([]ListOwnerRow, error) {
-	rows, err := q.db.Query(ctx, listOwner)
+func (q *Queries) ListUser(ctx context.Context) ([]ListUserRow, error) {
+	rows, err := q.db.Query(ctx, listUser)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListOwnerRow
+	var items []ListUserRow
 	for rows.Next() {
-		var i ListOwnerRow
+		var i ListUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirstName,
 			&i.MiddleName,
 			&i.LastName,
 			&i.Email,
+			&i.DriverLicense,
+			&i.IsOwner,
+			&i.IsRenter,
 			&i.PhoneNumber,
 			&i.AccountNumber,
 			&i.BankName,
@@ -136,12 +153,12 @@ func (q *Queries) ListOwner(ctx context.Context) ([]ListOwnerRow, error) {
 	return items, nil
 }
 
-const updatedOwner = `-- name: UpdatedOwner :one
-UPDATE owner SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9 WHERE  id = $1
-RETURNING id, first_name, middle_name, last_name, email, password, phone_number, account_number, bank_name, created_at, updated_at
+const updateUser = `-- name: UpdateUser :one
+UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9, driver_license= $10, is_owner=$11, is_renter=$12 WHERE  id = $1
+RETURNING id, first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
 `
 
-type UpdatedOwnerParams struct {
+type UpdateUserParams struct {
 	ID            uuid.UUID   `json:"id"`
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
@@ -151,10 +168,13 @@ type UpdatedOwnerParams struct {
 	PhoneNumber   string      `json:"phone_number"`
 	AccountNumber string      `json:"account_number"`
 	BankName      string      `json:"bank_name"`
+	DriverLicense string      `json:"driver_license"`
+	IsOwner       pgtype.Bool `json:"is_owner"`
+	IsRenter      pgtype.Bool `json:"is_renter"`
 }
 
-func (q *Queries) UpdatedOwner(ctx context.Context, arg UpdatedOwnerParams) (Owner, error) {
-	row := q.db.QueryRow(ctx, updatedOwner,
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
 		arg.ID,
 		arg.FirstName,
 		arg.MiddleName,
@@ -164,8 +184,11 @@ func (q *Queries) UpdatedOwner(ctx context.Context, arg UpdatedOwnerParams) (Own
 		arg.PhoneNumber,
 		arg.AccountNumber,
 		arg.BankName,
+		arg.DriverLicense,
+		arg.IsOwner,
+		arg.IsRenter,
 	)
-	var i Owner
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
@@ -173,9 +196,12 @@ func (q *Queries) UpdatedOwner(ctx context.Context, arg UpdatedOwnerParams) (Own
 		&i.LastName,
 		&i.Email,
 		&i.Password,
+		&i.DriverLicense,
 		&i.PhoneNumber,
 		&i.AccountNumber,
 		&i.BankName,
+		&i.IsOwner,
+		&i.IsRenter,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

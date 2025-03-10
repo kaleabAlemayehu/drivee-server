@@ -26,9 +26,9 @@ func NewHandler(ctx context.Context, conn *pgx.Conn) *handler {
 	return &handler{query: query, ctx: ctx}
 }
 
-func (h *handler) HandleGetAllOwner(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleGetAllUser(w http.ResponseWriter, r *http.Request) {
 
-	owners, err := h.query.ListOwner(h.ctx)
+	owners, err := h.query.ListUser(h.ctx)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "unable to fetch owner list", http.StatusInternalServerError)
@@ -43,7 +43,7 @@ func (h *handler) HandleGetAllOwner(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) HandleGetOwner(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println("unable to parse uuid that sent")
@@ -51,7 +51,7 @@ func (h *handler) HandleGetOwner(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	owner, err := h.query.GetOwner(h.ctx, id)
+	owner, err := h.query.GetUser(h.ctx, id)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "unable to fetch owner", http.StatusInternalServerError)
@@ -66,14 +66,14 @@ func (h *handler) HandleGetOwner(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) HandleInsertOwner(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleInsertUser(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	var params model.InsertOwnerParams
+	var params model.InsertUserParams
 	err = json.Unmarshal(body, &params)
 	if err != nil {
 		log.Println(err.Error())
@@ -88,7 +88,7 @@ func (h *handler) HandleInsertOwner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// insert into the table
-	owner, err := h.query.InsertOwner(h.ctx, model.InsertOwnerParams{
+	owner, err := h.query.InsertUser(h.ctx, model.InsertUserParams{
 		FirstName:     params.FirstName,
 		MiddleName:    params.MiddleName,
 		LastName:      params.LastName,
@@ -112,7 +112,7 @@ func (h *handler) HandleInsertOwner(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *handler) HandleUpdateOwner(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println("unable to get id parameter")
@@ -125,7 +125,7 @@ func (h *handler) HandleUpdateOwner(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	var Body model.UpdatedOwnerParams
+	var Body model.UpdateUserParams
 	err = json.Unmarshal(body, &Body)
 	if err != nil {
 		log.Println("unable to unmarshal body from the request bytes")
@@ -141,7 +141,7 @@ func (h *handler) HandleUpdateOwner(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	res, err := h.query.UpdatedOwner(h.ctx, Body)
+	res, err := h.query.UpdateUser(h.ctx, Body)
 	if err != nil {
 		log.Println("the query is not excuted")
 		http.Error(w, "bad request body", http.StatusBadRequest)

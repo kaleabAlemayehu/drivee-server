@@ -9,16 +9,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Owner struct {
+type User struct {
 	ID            uuid.UUID        `json:"id"`
 	FirstName     string           `json:"first_name"`
 	MiddleName    pgtype.Text      `json:"middle_name"`
 	LastName      string           `json:"last_name"`
 	Email         string           `json:"email"`
 	Password      string           `json:"password"`
+	DriverLicense string           `json:"driver_license"`
 	PhoneNumber   string           `json:"phone_number"`
 	AccountNumber string           `json:"account_number"`
 	BankName      string           `json:"bank_name"`
+	IsOwner       pgtype.Bool      `json:"is_owner"`
+	IsRenter      pgtype.Bool      `json:"is_renter"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
 	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
 }
