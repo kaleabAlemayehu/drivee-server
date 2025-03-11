@@ -8,6 +8,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
+	"github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -152,7 +153,7 @@ type Car struct {
 	Transmission Transmission     `json:"transmission"`
 	FuelType     FuelType         `json:"fuel_type"`
 	Mileage      int32            `json:"mileage"`
-	Location     interface{}      `json:"location"`
+	Location     postgis.Point    `json:"location"`
 	PricePerHour pgtype.Numeric   `json:"price_per_hour"`
 	Status       StatusType       `json:"status"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`

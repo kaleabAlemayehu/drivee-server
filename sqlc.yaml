@@ -15,3 +15,5 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+          - db_type: "geometry"
+            go_type: "github.com/cridenour/go-postgis.Point"

@@ -4,6 +4,7 @@ go 1.23.4
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/cridenour/go-postgis v1.0.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/joho/godotenv v1.5.1
