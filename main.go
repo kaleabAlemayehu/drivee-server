@@ -36,6 +36,7 @@ func main() {
 	// INFO: car router (maybe i need to put it in its own packaga)
 	carRouter := http.NewServeMux()
 	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCars)
+	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCar)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
