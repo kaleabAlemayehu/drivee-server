@@ -13,5 +13,5 @@ INSERT INTO users ( first_name, middle_name, last_name, email, password, driver_
 
 -- +goose Down
 -- +goose StatementBegin
-DELETE FROM users WHERE bank_name='BOA';
+TRUNCATE TABLE user CASCADE;
 -- +goose StatementEnd

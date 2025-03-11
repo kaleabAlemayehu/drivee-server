@@ -1,7 +1,7 @@
 .PHONY: all 
 
 init:
-	@docker compose up -d && goose up
+	@docker compose up -d && goose -dir ./schema/migrations up && goose -dir ./schema/seeds -no-versioning up
 .PHONY: init
 
 dev: init
@@ -9,7 +9,7 @@ dev: init
 .PHONY: dev
 
 clean:
-	@goose down && docker compose down
+	@goose -dir ./schema/seeds -no-versioning reset && goose -dir ./schema/migrations down && docker compose down
 .PHONY: clean
 
 test:
