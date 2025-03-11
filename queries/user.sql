@@ -17,8 +17,3 @@ UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, 
 RETURNING *;
 
 
-
--- name: ListCars :many
-SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year;
-
-
