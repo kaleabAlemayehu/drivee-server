@@ -8,7 +8,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
-	"github.com/cridenour/go-postgis"
+	go_postgis "github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -143,21 +143,21 @@ func (ns NullTransmission) Value() (driver.Value, error) {
 }
 
 type Car struct {
-	ID           uuid.UUID        `json:"id"`
-	OwnerID      uuid.UUID        `json:"owner_id"`
-	Make         string           `json:"make"`
-	Model        string           `json:"model"`
-	Year         string           `json:"year"`
-	LicensePlate string           `json:"license_plate"`
-	VinNumber    string           `json:"vin_number"`
-	Transmission Transmission     `json:"transmission"`
-	FuelType     FuelType         `json:"fuel_type"`
-	Mileage      int32            `json:"mileage"`
-	Location     postgis.Point    `json:"location"`
-	PricePerHour pgtype.Numeric   `json:"price_per_hour"`
-	Status       StatusType       `json:"status"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+	ID           uuid.UUID         `json:"id"`
+	OwnerID      uuid.UUID         `json:"owner_id"`
+	Make         string            `json:"make"`
+	Model        string            `json:"model"`
+	Year         string            `json:"year"`
+	LicensePlate string            `json:"license_plate"`
+	VinNumber    string            `json:"vin_number"`
+	Transmission Transmission      `json:"transmission"`
+	FuelType     FuelType          `json:"fuel_type"`
+	Mileage      int32             `json:"mileage"`
+	Location     go_postgis.PointS `json:"location"`
+	PricePerHour pgtype.Numeric    `json:"price_per_hour"`
+	Status       StatusType        `json:"status"`
+	CreatedAt    pgtype.Timestamp  `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp  `json:"updated_at"`
 }
 
 type User struct {

@@ -8,7 +8,7 @@ package model
 import (
 	"context"
 
-	"github.com/cridenour/go-postgis"
+	go_postgis "github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -18,19 +18,19 @@ SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,
 `
 
 type GetCarRow struct {
-	ID           uuid.UUID      `json:"id"`
-	OwnerID      uuid.UUID      `json:"owner_id"`
-	Make         string         `json:"make"`
-	Model        string         `json:"model"`
-	Year         string         `json:"year"`
-	LicensePlate string         `json:"license_plate"`
-	VinNumber    string         `json:"vin_number"`
-	Transmission Transmission   `json:"transmission"`
-	FuelType     FuelType       `json:"fuel_type"`
-	Mileage      int32          `json:"mileage"`
-	Location     postgis.Point  `json:"location"`
-	PricePerHour pgtype.Numeric `json:"price_per_hour"`
-	Status       StatusType     `json:"status"`
+	ID           uuid.UUID         `json:"id"`
+	OwnerID      uuid.UUID         `json:"owner_id"`
+	Make         string            `json:"make"`
+	Model        string            `json:"model"`
+	Year         string            `json:"year"`
+	LicensePlate string            `json:"license_plate"`
+	VinNumber    string            `json:"vin_number"`
+	Transmission Transmission      `json:"transmission"`
+	FuelType     FuelType          `json:"fuel_type"`
+	Mileage      int32             `json:"mileage"`
+	Location     go_postgis.PointS `json:"location"`
+	PricePerHour pgtype.Numeric    `json:"price_per_hour"`
+	Status       StatusType        `json:"status"`
 }
 
 func (q *Queries) GetCar(ctx context.Context, id uuid.UUID) (GetCarRow, error) {
@@ -54,24 +54,81 @@ func (q *Queries) GetCar(ctx context.Context, id uuid.UUID) (GetCarRow, error) {
 	return i, err
 }
 
+const insertCar = `-- name: InsertCar :one
+INSERT INTO cars( owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($10, $11), 4326), $12, $13 ) RETURNING id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, created_at, updated_at
+`
+
+type InsertCarParams struct {
+	OwnerID       uuid.UUID      `json:"owner_id"`
+	Make          string         `json:"make"`
+	Model         string         `json:"model"`
+	Year          string         `json:"year"`
+	LicensePlate  string         `json:"license_plate"`
+	VinNumber     string         `json:"vin_number"`
+	Transmission  Transmission   `json:"transmission"`
+	FuelType      FuelType       `json:"fuel_type"`
+	Mileage       int32          `json:"mileage"`
+	StMakepoint   interface{}    `json:"st_makepoint"`
+	StMakepoint_2 interface{}    `json:"st_makepoint_2"`
+	PricePerHour  pgtype.Numeric `json:"price_per_hour"`
+	Status        StatusType     `json:"status"`
+}
+
+func (q *Queries) InsertCar(ctx context.Context, arg InsertCarParams) (Car, error) {
+	row := q.db.QueryRow(ctx, insertCar,
+		arg.OwnerID,
+		arg.Make,
+		arg.Model,
+		arg.Year,
+		arg.LicensePlate,
+		arg.VinNumber,
+		arg.Transmission,
+		arg.FuelType,
+		arg.Mileage,
+		arg.StMakepoint,
+		arg.StMakepoint_2,
+		arg.PricePerHour,
+		arg.Status,
+	)
+	var i Car
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.Make,
+		&i.Model,
+		&i.Year,
+		&i.LicensePlate,
+		&i.VinNumber,
+		&i.Transmission,
+		&i.FuelType,
+		&i.Mileage,
+		&i.Location,
+		&i.PricePerHour,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listCars = `-- name: ListCars :many
 SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year
 `
 
 type ListCarsRow struct {
-	ID           uuid.UUID      `json:"id"`
-	OwnerID      uuid.UUID      `json:"owner_id"`
-	Make         string         `json:"make"`
-	Model        string         `json:"model"`
-	Year         string         `json:"year"`
-	LicensePlate string         `json:"license_plate"`
-	VinNumber    string         `json:"vin_number"`
-	Transmission Transmission   `json:"transmission"`
-	FuelType     FuelType       `json:"fuel_type"`
-	Mileage      int32          `json:"mileage"`
-	Location     postgis.Point  `json:"location"`
-	PricePerHour pgtype.Numeric `json:"price_per_hour"`
-	Status       StatusType     `json:"status"`
+	ID           uuid.UUID         `json:"id"`
+	OwnerID      uuid.UUID         `json:"owner_id"`
+	Make         string            `json:"make"`
+	Model        string            `json:"model"`
+	Year         string            `json:"year"`
+	LicensePlate string            `json:"license_plate"`
+	VinNumber    string            `json:"vin_number"`
+	Transmission Transmission      `json:"transmission"`
+	FuelType     FuelType          `json:"fuel_type"`
+	Mileage      int32             `json:"mileage"`
+	Location     go_postgis.PointS `json:"location"`
+	PricePerHour pgtype.Numeric    `json:"price_per_hour"`
+	Status       StatusType        `json:"status"`
 }
 
 func (q *Queries) ListCars(ctx context.Context) ([]ListCarsRow, error) {

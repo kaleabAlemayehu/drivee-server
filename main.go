@@ -37,6 +37,7 @@ func main() {
 	carRouter := http.NewServeMux()
 	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCars)
 	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCar)
+	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertCar)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
