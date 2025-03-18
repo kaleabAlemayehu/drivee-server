@@ -130,3 +130,60 @@ func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	_ = id
+	bodyByte, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	var body struct {
+		Mileage  int32 `json:"mileage"`
+		Location struct {
+			X float64 `json:"x"`
+			Y float64 `json:"y"`
+		}
+		PricePerHour pgtype.Numeric   `json:"price_per_hour"`
+		Status       model.StatusType `json:"status"`
+	}
+
+	err = json.Unmarshal(bodyByte, &body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	payload := model.UpdateCarParams{
+		ID:            id,
+		Mileage:       body.Mileage,
+		StMakepoint:   body.Location.X,
+		StMakepoint_2: body.Location.Y,
+		PricePerHour:  body.PricePerHour,
+		Status:        model.StatusType(body.Status),
+	}
+
+	car, err := h.query.UpdateCar(h.ctx, payload)
+	if err != nil {
+		log.Println(err.Error())
+		log.Println("fucking query not working")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(&car)
+	if err != nil {
+		log.Println(err.Error())
+		log.Println("unable to send data")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	return
+}

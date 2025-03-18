@@ -164,3 +164,46 @@ func (q *Queries) ListCars(ctx context.Context) ([]ListCarsRow, error) {
 	}
 	return items, nil
 }
+
+const updateCar = `-- name: UpdateCar :one
+UPDATE cars SET mileage = $2, location = ST_SetSRID(ST_MakePoint($3, $4), 4326), price_per_hour = $5, status = $6 WHERE id = $1 RETURNING id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, created_at, updated_at
+`
+
+type UpdateCarParams struct {
+	ID            uuid.UUID      `json:"id"`
+	Mileage       int32          `json:"mileage"`
+	StMakepoint   interface{}    `json:"st_makepoint"`
+	StMakepoint_2 interface{}    `json:"st_makepoint_2"`
+	PricePerHour  pgtype.Numeric `json:"price_per_hour"`
+	Status        StatusType     `json:"status"`
+}
+
+func (q *Queries) UpdateCar(ctx context.Context, arg UpdateCarParams) (Car, error) {
+	row := q.db.QueryRow(ctx, updateCar,
+		arg.ID,
+		arg.Mileage,
+		arg.StMakepoint,
+		arg.StMakepoint_2,
+		arg.PricePerHour,
+		arg.Status,
+	)
+	var i Car
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.Make,
+		&i.Model,
+		&i.Year,
+		&i.LicensePlate,
+		&i.VinNumber,
+		&i.Transmission,
+		&i.FuelType,
+		&i.Mileage,
+		&i.Location,
+		&i.PricePerHour,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
