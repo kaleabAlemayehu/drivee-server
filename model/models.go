@@ -13,6 +13,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BookingStatus string
+
+const (
+	BookingStatusPending   BookingStatus = "pending"
+	BookingStatusConfirmed BookingStatus = "confirmed"
+	BookingStatusCanceled  BookingStatus = "canceled"
+	BookingStatusCompleted BookingStatus = "completed"
+)
+
+func (e *BookingStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BookingStatus(s)
+	case string:
+		*e = BookingStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BookingStatus: %T", src)
+	}
+	return nil
+}
+
+type NullBookingStatus struct {
+	BookingStatus BookingStatus `json:"booking_status"`
+	Valid         bool          `json:"valid"` // Valid is true if BookingStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBookingStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.BookingStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BookingStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBookingStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BookingStatus), nil
+}
+
 type FuelType string
 
 const (
@@ -140,6 +184,18 @@ func (ns NullTransmission) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.Transmission), nil
+}
+
+type Booking struct {
+	ID         uuid.UUID        `json:"id"`
+	CarID      uuid.UUID        `json:"car_id"`
+	RenterID   uuid.UUID        `json:"renter_id"`
+	StartTime  pgtype.Timestamp `json:"start_time"`
+	EndTime    pgtype.Timestamp `json:"end_time"`
+	TotalPrice pgtype.Numeric   `json:"total_price"`
+	Status     BookingStatus    `json:"status"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
+	UpdatedAt  pgtype.Timestamp `json:"updated_at"`
 }
 
 type Car struct {
