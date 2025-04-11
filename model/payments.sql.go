@@ -43,6 +43,45 @@ func (q *Queries) GetPayment(ctx context.Context, id uuid.UUID) (GetPaymentRow, 
 	return i, err
 }
 
+const insertPayment = `-- name: InsertPayment :one
+INSERT INTO payments(booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id, created_at
+`
+
+type InsertPaymentParams struct {
+	BookingID     uuid.UUID      `json:"booking_id"`
+	RenterID      uuid.UUID      `json:"renter_id"`
+	OwnerID       uuid.UUID      `json:"owner_id"`
+	Amount        pgtype.Numeric `json:"amount"`
+	PaymentStatus PaymentStatus  `json:"payment_status"`
+	PaymentMethod PaymentMethod  `json:"payment_method"`
+	TransactionID string         `json:"transaction_id"`
+}
+
+func (q *Queries) InsertPayment(ctx context.Context, arg InsertPaymentParams) (Payment, error) {
+	row := q.db.QueryRow(ctx, insertPayment,
+		arg.BookingID,
+		arg.RenterID,
+		arg.OwnerID,
+		arg.Amount,
+		arg.PaymentStatus,
+		arg.PaymentMethod,
+		arg.TransactionID,
+	)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.BookingID,
+		&i.RenterID,
+		&i.OwnerID,
+		&i.Amount,
+		&i.PaymentStatus,
+		&i.PaymentMethod,
+		&i.TransactionID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listPayments = `-- name: ListPayments :many
 SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments ORDER BY created_at
 `

@@ -52,6 +52,7 @@ func main() {
 	paymentRouter := http.NewServeMux()
 	paymentRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllPayments)
 	paymentRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetPayment)
+	paymentRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertPayment)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
