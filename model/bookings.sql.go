@@ -12,14 +12,43 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getBooking = `-- name: GetBooking :one
+SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE id=$1
+`
+
+type GetBookingRow struct {
+	ID         uuid.UUID        `json:"id"`
+	CarID      pgtype.UUID      `json:"car_id"`
+	RenterID   pgtype.UUID      `json:"renter_id"`
+	StartTime  pgtype.Timestamp `json:"start_time"`
+	EndTime    pgtype.Timestamp `json:"end_time"`
+	TotalPrice pgtype.Numeric   `json:"total_price"`
+	Status     BookingStatus    `json:"status"`
+}
+
+func (q *Queries) GetBooking(ctx context.Context, id uuid.UUID) (GetBookingRow, error) {
+	row := q.db.QueryRow(ctx, getBooking, id)
+	var i GetBookingRow
+	err := row.Scan(
+		&i.ID,
+		&i.CarID,
+		&i.RenterID,
+		&i.StartTime,
+		&i.EndTime,
+		&i.TotalPrice,
+		&i.Status,
+	)
+	return i, err
+}
+
 const listBookings = `-- name: ListBookings :many
 SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings ORDER BY start_time
 `
 
 type ListBookingsRow struct {
 	ID         uuid.UUID        `json:"id"`
-	CarID      uuid.UUID        `json:"car_id"`
-	RenterID   uuid.UUID        `json:"renter_id"`
+	CarID      pgtype.UUID      `json:"car_id"`
+	RenterID   pgtype.UUID      `json:"renter_id"`
 	StartTime  pgtype.Timestamp `json:"start_time"`
 	EndTime    pgtype.Timestamp `json:"end_time"`
 	TotalPrice pgtype.Numeric   `json:"total_price"`

@@ -43,6 +43,8 @@ func main() {
 	// INFO:
 	bookingRouter := http.NewServeMux()
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllBookings)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetBooking)
+	// bookingRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertBookings)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
@@ -54,6 +56,7 @@ func main() {
 		Handler: mux,
 	}
 
+	log.Printf("running server on localhost:%v", port)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("unable to run the server %v \n", err.Error())
 	}

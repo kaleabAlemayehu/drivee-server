@@ -188,8 +188,8 @@ func (ns NullTransmission) Value() (driver.Value, error) {
 
 type Booking struct {
 	ID         uuid.UUID        `json:"id"`
-	CarID      uuid.UUID        `json:"car_id"`
-	RenterID   uuid.UUID        `json:"renter_id"`
+	CarID      pgtype.UUID      `json:"car_id"`
+	RenterID   pgtype.UUID      `json:"renter_id"`
 	StartTime  pgtype.Timestamp `json:"start_time"`
 	EndTime    pgtype.Timestamp `json:"end_time"`
 	TotalPrice pgtype.Numeric   `json:"total_price"`

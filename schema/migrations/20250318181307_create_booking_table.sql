@@ -2,8 +2,10 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS bookings (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  car_id UUID REFERENCES cars(id) NOT NULL,
-  renter_id UUID REFERENCES users(id) NOT NULL,
+  car_id UUID, 
+	-- TODO:( fix this on prod) REFERENCES cars(id) NOT NULL,
+  renter_id UUID ,
+	-- TODO:( fix this on prod)  REFERENCES users(id) NOT NULL,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL,
   total_price NUMERIC(10, 2) NOT NULL,
