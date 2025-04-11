@@ -71,3 +71,30 @@ func (h *handler) HandleInsertBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+func (h *handler) HandleUpdateBooking(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	var body model.UpdateBookingParams
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	body.ID = id
+	booking, err := h.query.UpdateBooking(h.ctx, body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(booking); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	return
+}
