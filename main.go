@@ -47,10 +47,16 @@ func main() {
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertBooking)
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateBooking)
 
+	// INFO:
+
+	paymentRouter := http.NewServeMux()
+	paymentRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllPayment)
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", bookingRouter))
+	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", paymentRouter))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

@@ -101,6 +101,95 @@ func (ns NullFuelType) Value() (driver.Value, error) {
 	return string(ns.FuelType), nil
 }
 
+type PaymentMethod string
+
+const (
+	PaymentMethodCreditCard PaymentMethod = "credit_card"
+	PaymentMethodPaypal     PaymentMethod = "paypal"
+	PaymentMethodApplePay   PaymentMethod = "apple_pay"
+	PaymentMethodTelebirr   PaymentMethod = "telebirr"
+	PaymentMethodGooglePay  PaymentMethod = "google_pay"
+)
+
+func (e *PaymentMethod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentMethod(s)
+	case string:
+		*e = PaymentMethod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentMethod: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentMethod struct {
+	PaymentMethod PaymentMethod `json:"payment_method"`
+	Valid         bool          `json:"valid"` // Valid is true if PaymentMethod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentMethod) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentMethod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentMethod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentMethod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentMethod), nil
+}
+
+type PaymentStatus string
+
+const (
+	PaymentStatusPending  PaymentStatus = "pending"
+	PaymentStatusPaid     PaymentStatus = "paid"
+	PaymentStatusFailed   PaymentStatus = "failed"
+	PaymentStatusRefunded PaymentStatus = "refunded"
+)
+
+func (e *PaymentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentStatus(s)
+	case string:
+		*e = PaymentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentStatus struct {
+	PaymentStatus PaymentStatus `json:"payment_status"`
+	Valid         bool          `json:"valid"` // Valid is true if PaymentStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentStatus), nil
+}
+
 type StatusType string
 
 const (
@@ -214,6 +303,18 @@ type Car struct {
 	Status       StatusType        `json:"status"`
 	CreatedAt    pgtype.Timestamp  `json:"created_at"`
 	UpdatedAt    pgtype.Timestamp  `json:"updated_at"`
+}
+
+type Payment struct {
+	ID            uuid.UUID        `json:"id"`
+	BookingID     uuid.UUID        `json:"booking_id"`
+	RenterID      uuid.UUID        `json:"renter_id"`
+	OwnerID       uuid.UUID        `json:"owner_id"`
+	Amount        pgtype.Numeric   `json:"amount"`
+	PaymentStatus PaymentStatus    `json:"payment_status"`
+	PaymentMethod PaymentMethod    `json:"payment_method"`
+	TransactionID string           `json:"transaction_id"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
 }
 
 type User struct {
