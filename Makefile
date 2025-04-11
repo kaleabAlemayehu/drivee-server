@@ -1,7 +1,7 @@
 .PHONY: all 
 
 init:
-	@docker compose up -d && goose -dir ./schema/migrations up && goose -dir ./schema/seeds -no-versioning up
+	@sudo docker compose up -d && goose -dir ./schema/migrations up && goose -dir ./schema/seeds -no-versioning up
 .PHONY: init
 
 dev: init
