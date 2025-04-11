@@ -9,7 +9,7 @@ dev: init
 .PHONY: dev
 
 clean:
-	@goose -dir ./schema/seeds -no-versioning reset && goose -dir ./schema/migrations down && docker compose down
+	@goose -dir ./schema/seeds -no-versioning reset && goose -dir ./schema/migrations down && sudo docker compose down
 .PHONY: clean
 
 test:
