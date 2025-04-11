@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS cars (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  owner_id UUID ,
+  owner_id UUID,
 -- TODO: (fix this on production) REFERENCES users(id) NOT NULL,
   make TEXT NOT NULL,
   model TEXT NOT NULL,
