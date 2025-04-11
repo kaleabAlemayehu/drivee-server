@@ -12,6 +12,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getPayment = `-- name: GetPayment :one
+SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments WHERE id=$1
+`
+
+type GetPaymentRow struct {
+	ID            uuid.UUID      `json:"id"`
+	BookingID     uuid.UUID      `json:"booking_id"`
+	RenterID      uuid.UUID      `json:"renter_id"`
+	OwnerID       uuid.UUID      `json:"owner_id"`
+	Amount        pgtype.Numeric `json:"amount"`
+	PaymentStatus PaymentStatus  `json:"payment_status"`
+	PaymentMethod PaymentMethod  `json:"payment_method"`
+	TransactionID string         `json:"transaction_id"`
+}
+
+func (q *Queries) GetPayment(ctx context.Context, id uuid.UUID) (GetPaymentRow, error) {
+	row := q.db.QueryRow(ctx, getPayment, id)
+	var i GetPaymentRow
+	err := row.Scan(
+		&i.ID,
+		&i.BookingID,
+		&i.RenterID,
+		&i.OwnerID,
+		&i.Amount,
+		&i.PaymentStatus,
+		&i.PaymentMethod,
+		&i.TransactionID,
+	)
+	return i, err
+}
+
 const listPayments = `-- name: ListPayments :many
 SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments ORDER BY created_at
 `
