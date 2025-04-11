@@ -13,5 +13,5 @@ INSERT INTO users ( first_name, middle_name, last_name, email, password, driver_
 
 -- +goose Down
 -- +goose StatementBegin
-TRUNCATE TABLE user CASCADE;
+TRUNCATE TABLE users CASCADE;
 -- +goose StatementEnd
