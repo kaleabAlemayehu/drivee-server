@@ -1,4 +1,4 @@
--- name: GetCarPhotos :one
+-- name: GetCarPhotos :many
 SELECT id, car_id, photo_url FROM car_photos ORDER BY created_at;
 
 -- name: GetCarPhoto :one

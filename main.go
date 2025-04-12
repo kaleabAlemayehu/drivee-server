@@ -62,6 +62,10 @@ func main() {
 	reviewRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertReview)
 	reviewRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateReview)
 
+	// INFO:
+	carPhotoRouter := http.NewServeMux()
+
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCarPhotos)
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
