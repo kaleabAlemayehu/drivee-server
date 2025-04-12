@@ -70,3 +70,29 @@ func (h *handler) HandleInsertReview(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *handler) HandleUpdateReview(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	var body model.UpdateReviewParams
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	body.ID = id
+	review, err := h.query.UpdateReview(h.ctx, body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(review); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}

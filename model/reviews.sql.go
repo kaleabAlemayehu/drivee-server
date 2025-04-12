@@ -111,3 +111,29 @@ func (q *Queries) ListReviews(ctx context.Context) ([]ListReviewsRow, error) {
 	}
 	return items, nil
 }
+
+const updateReview = `-- name: UpdateReview :one
+UPDATE reviews SET rating = $2, comment = $3 WHERE id = $1 RETURNING id, reviewer_id, target_id, booking_id, rating, comment, created_at, updated_at
+`
+
+type UpdateReviewParams struct {
+	ID      uuid.UUID `json:"id"`
+	Rating  int32     `json:"rating"`
+	Comment string    `json:"comment"`
+}
+
+func (q *Queries) UpdateReview(ctx context.Context, arg UpdateReviewParams) (Review, error) {
+	row := q.db.QueryRow(ctx, updateReview, arg.ID, arg.Rating, arg.Comment)
+	var i Review
+	err := row.Scan(
+		&i.ID,
+		&i.ReviewerID,
+		&i.TargetID,
+		&i.BookingID,
+		&i.Rating,
+		&i.Comment,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
