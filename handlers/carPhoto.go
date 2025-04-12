@@ -67,3 +67,31 @@ func (h *handler) HandleInsertCarPhoto(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *handler) HandleUpdateCarPhoto(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	var body model.UpdateCarPhotoParams
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	body.ID = id
+
+	photo, err := h.query.UpdateCarPhoto(h.ctx, body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(photo); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusBadRequest)
+		return
+	}
+}
