@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 func (h *handler) HandleGetAllReviews(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +21,26 @@ func (h *handler) HandleGetAllReviews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(reviews); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *handler) HandleGetReview(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	review, err := h.query.GetReview(h.ctx, id)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(review); err != nil {
 		log.Println(err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

@@ -58,6 +58,7 @@ func main() {
 	// INFO:
 	reviewRouter := http.NewServeMux()
 	reviewRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllReviews)
+	reviewRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetReview)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))

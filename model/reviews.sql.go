@@ -11,6 +11,33 @@ import (
 	"github.com/google/uuid"
 )
 
+const getReview = `-- name: GetReview :one
+SELECT id, reviewer_id, target_id, booking_id, rating, comment FROM reviews WHERE id=$1
+`
+
+type GetReviewRow struct {
+	ID         uuid.UUID `json:"id"`
+	ReviewerID uuid.UUID `json:"reviewer_id"`
+	TargetID   uuid.UUID `json:"target_id"`
+	BookingID  uuid.UUID `json:"booking_id"`
+	Rating     int32     `json:"rating"`
+	Comment    string    `json:"comment"`
+}
+
+func (q *Queries) GetReview(ctx context.Context, id uuid.UUID) (GetReviewRow, error) {
+	row := q.db.QueryRow(ctx, getReview, id)
+	var i GetReviewRow
+	err := row.Scan(
+		&i.ID,
+		&i.ReviewerID,
+		&i.TargetID,
+		&i.BookingID,
+		&i.Rating,
+		&i.Comment,
+	)
+	return i, err
+}
+
 const listReviews = `-- name: ListReviews :many
 SELECT id, reviewer_id, target_id, booking_id, rating, comment FROM reviews ORDER BY updated_at
 `
