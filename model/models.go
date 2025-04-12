@@ -315,6 +315,7 @@ type Payment struct {
 	PaymentMethod PaymentMethod    `json:"payment_method"`
 	TransactionID string           `json:"transaction_id"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
 }
 
 type User struct {

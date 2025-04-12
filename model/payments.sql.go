@@ -44,7 +44,7 @@ func (q *Queries) GetPayment(ctx context.Context, id uuid.UUID) (GetPaymentRow, 
 }
 
 const insertPayment = `-- name: InsertPayment :one
-INSERT INTO payments(booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id, created_at
+INSERT INTO payments(booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id, created_at, updated_at
 `
 
 type InsertPaymentParams struct {
@@ -78,6 +78,7 @@ func (q *Queries) InsertPayment(ctx context.Context, arg InsertPaymentParams) (P
 		&i.PaymentMethod,
 		&i.TransactionID,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -124,4 +125,31 @@ func (q *Queries) ListPayments(ctx context.Context) ([]ListPaymentsRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePayment = `-- name: UpdatePayment :one
+UPDATE payments SET payment_status = $2  WHERE id = $1 RETURNING id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id, created_at, updated_at
+`
+
+type UpdatePaymentParams struct {
+	ID            uuid.UUID     `json:"id"`
+	PaymentStatus PaymentStatus `json:"payment_status"`
+}
+
+func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (Payment, error) {
+	row := q.db.QueryRow(ctx, updatePayment, arg.ID, arg.PaymentStatus)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.BookingID,
+		&i.RenterID,
+		&i.OwnerID,
+		&i.Amount,
+		&i.PaymentStatus,
+		&i.PaymentMethod,
+		&i.TransactionID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

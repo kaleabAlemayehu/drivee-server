@@ -71,3 +71,30 @@ func (h *handler) HandleInsertPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *handler) HandleUpdatePayment(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusInternalServerError)
+		return
+	}
+	var body model.UpdatePaymentParams
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	body.ID = id
+	payment, err := h.query.UpdatePayment(h.ctx, body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(payment); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
