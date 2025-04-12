@@ -305,6 +305,14 @@ type Car struct {
 	UpdatedAt    pgtype.Timestamp  `json:"updated_at"`
 }
 
+type CarPhoto struct {
+	ID        uuid.UUID        `json:"id"`
+	CarID     uuid.UUID        `json:"car_id"`
+	PhotoUrl  string           `json:"photo_url"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+}
+
 type Payment struct {
 	ID            uuid.UUID        `json:"id"`
 	BookingID     uuid.UUID        `json:"booking_id"`
