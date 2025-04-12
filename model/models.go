@@ -318,6 +318,17 @@ type Payment struct {
 	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
 }
 
+type Review struct {
+	ID         uuid.UUID        `json:"id"`
+	ReviewerID uuid.UUID        `json:"reviewer_id"`
+	TargetID   uuid.UUID        `json:"target_id"`
+	BookingID  uuid.UUID        `json:"booking_id"`
+	Rating     int32            `json:"rating"`
+	Comment    string           `json:"comment"`
+	CreatedAt  pgtype.Timestamp `json:"created_at"`
+	UpdatedAt  pgtype.Timestamp `json:"updated_at"`
+}
+
 type User struct {
 	ID            uuid.UUID        `json:"id"`
 	FirstName     string           `json:"first_name"`

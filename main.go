@@ -55,11 +55,16 @@ func main() {
 	paymentRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertPayment)
 	paymentRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdatePayment)
 
+	// INFO:
+	reviewRouter := http.NewServeMux()
+	reviewRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllReviews)
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", bookingRouter))
 	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", paymentRouter))
+	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", reviewRouter))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
