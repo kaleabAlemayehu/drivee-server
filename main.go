@@ -66,6 +66,7 @@ func main() {
 	carPhotoRouter := http.NewServeMux()
 
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCarPhotos)
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCarPhoto)
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
