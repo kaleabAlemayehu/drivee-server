@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/kaleabAlemayehu/drivee-server/model"
 )
 
 func (h *handler) HandleGetAllReviews(w http.ResponseWriter, r *http.Request) {
@@ -46,3 +47,26 @@ func (h *handler) HandleGetReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *handler) HandleInsertReview(w http.ResponseWriter, r *http.Request) {
+	var body model.InsertReviewParams
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	review, err := h.query.InsertReview(h.ctx, body)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(review); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
