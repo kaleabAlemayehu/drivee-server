@@ -70,6 +70,9 @@ func main() {
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertCarPhoto)
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateCarPhoto)
 
+	transactionRouter := http.NewServeMux()
+
+	transactionRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllTransactions)
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
