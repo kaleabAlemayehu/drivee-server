@@ -73,6 +73,10 @@ func main() {
 	transactionRouter := http.NewServeMux()
 
 	transactionRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllTransactions)
+	transactionRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetTransaction)
+	transactionRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleCreateTransaction)
+	transactionRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateTransaction)
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
@@ -80,6 +84,7 @@ func main() {
 	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", paymentRouter))
 	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", reviewRouter))
 	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", carPhotoRouter))
+	mux.Handle("/api/transactions/", http.StripPrefix("/api/transactions", transactionRouter))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

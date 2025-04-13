@@ -190,6 +190,49 @@ func (ns NullPaymentStatus) Value() (driver.Value, error) {
 	return string(ns.PaymentStatus), nil
 }
 
+type PayoutStatus string
+
+const (
+	PayoutStatusPending   PayoutStatus = "pending"
+	PayoutStatusCompleted PayoutStatus = "completed"
+	PayoutStatusFailed    PayoutStatus = "failed"
+)
+
+func (e *PayoutStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PayoutStatus(s)
+	case string:
+		*e = PayoutStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PayoutStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPayoutStatus struct {
+	PayoutStatus PayoutStatus `json:"payout_status"`
+	Valid        bool         `json:"valid"` // Valid is true if PayoutStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPayoutStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PayoutStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PayoutStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPayoutStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PayoutStatus), nil
+}
+
 type StatusType string
 
 const (
@@ -335,6 +378,18 @@ type Review struct {
 	Comment    string           `json:"comment"`
 	CreatedAt  pgtype.Timestamp `json:"created_at"`
 	UpdatedAt  pgtype.Timestamp `json:"updated_at"`
+}
+
+type Transaction struct {
+	ID           uuid.UUID        `json:"id"`
+	RenterID     uuid.UUID        `json:"renter_id"`
+	OwnerID      uuid.UUID        `json:"owner_id"`
+	BookingID    uuid.UUID        `json:"booking_id"`
+	Amount       pgtype.Numeric   `json:"amount"`
+	Fee          pgtype.Numeric   `json:"fee"`
+	PayoutStatus PayoutStatus     `json:"payout_status"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
 }
 
 type User struct {
