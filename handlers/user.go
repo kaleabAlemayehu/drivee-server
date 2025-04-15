@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/google/uuid"
 
 	model "github.com/kaleabAlemayehu/drivee-server/model"
@@ -55,48 +54,6 @@ func (h *handler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleInsertUser(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	var params model.InsertUserParams
-	err = json.Unmarshal(body, &params)
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-	// hash the password
-	hashedPass, err := argon2id.CreateHash(params.Password, argon2id.DefaultParams)
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusBadRequest)
-		return
-	}
-	// insert into the table
-	owner, err := h.query.InsertUser(h.ctx, model.InsertUserParams{
-		FirstName:     params.FirstName,
-		MiddleName:    params.MiddleName,
-		LastName:      params.LastName,
-		Email:         params.Email,
-		Password:      hashedPass,
-		PhoneNumber:   params.PhoneNumber,
-		AccountNumber: params.AccountNumber,
-		BankName:      params.BankName,
-	})
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(&owner)
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "unable to send data", http.StatusInternalServerError)
-		return
-	}
 
 }
 
