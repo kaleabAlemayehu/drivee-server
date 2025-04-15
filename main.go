@@ -26,6 +26,9 @@ func main() {
 	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
 
 	handler := handlers.NewHandler(ctx, conn)
+	stack := middleware.CreateStack(
+		middleware.Logger,
+	)
 
 	// INFO: user router (maybe i need to put it in its own package)
 	userRouter := http.NewServeMux()
@@ -89,7 +92,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: middleware.Logger(mux),
+		Handler: stack(mux),
 	}
 
 	log.Printf("running server on localhost:%v", port)
