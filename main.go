@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	connection "github.com/kaleabAlemayehu/drivee-server/connection"
 	"github.com/kaleabAlemayehu/drivee-server/handlers"
+	"github.com/kaleabAlemayehu/drivee-server/middleware"
 )
 
 func main() {
@@ -88,7 +89,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: mux,
+		Handler: middleware.Logger(mux),
 	}
 
 	log.Printf("running server on localhost:%v", port)
