@@ -22,6 +22,10 @@ type registerResponse struct {
 	LastName   string    `json:"last_name"`
 	Token      string    `json:"token"`
 }
+type loginInput struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
 func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 
@@ -86,10 +90,60 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		Token:      token,
 	}
 
+
+func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	var body loginInput
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.query.GetUserByEmail(h.ctx, body.Email)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid email or password", http.StatusBadRequest)
+		return
+	}
+
+	match, err := argon.ComparePasswordAndHash(body.Password, user.Password)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if !match {
+		log.Println("password don't match")
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
+	}
+
+	// return new token and send it will the response
+	tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":   user.ID,
+		"name":  user.FirstName,
+		"email": user.Email,
+		"iat":   time.Now().Unix(),
+		"exp":   time.Now().AddDate(0, 0, 7).Unix(),
+	})
+	token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	var res registerResponse = registerResponse{
+		ID:         user.ID,
+		Email:      user.Email,
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName.String,
+		LastName:   user.LastName,
+		Token:      token,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&res)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "unable to send data", http.StatusInternalServerError)
 		return
 	}
+
 }

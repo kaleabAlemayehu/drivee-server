@@ -82,7 +82,8 @@ func main() {
 	transactionRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateTransaction)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/register", handler.HandleRegister)
+	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), handler.HandleRegister)
+	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), handler.HandleLogin)
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", bookingRouter))
