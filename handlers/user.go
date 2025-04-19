@@ -22,6 +22,7 @@ func (h *handler) HandleGetAllUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&owners)
 	if err != nil {
 		log.Println("unable to send owner list")
