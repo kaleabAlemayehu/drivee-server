@@ -14,7 +14,7 @@ import (
 	"github.com/kaleabAlemayehu/drivee-server/model"
 )
 
-type registerResponse struct {
+type authResponse struct {
 	ID         uuid.UUID `json:"id"`
 	Email      string    `json:"email"`
 	FirstName  string    `json:"first_name"`
@@ -50,7 +50,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// insert into the table
-	owner, err := h.query.InsertUser(h.ctx, model.InsertUserParams{
+	user, err := h.query.InsertUser(h.ctx, model.InsertUserParams{
 		FirstName:     params.FirstName,
 		MiddleName:    params.MiddleName,
 		LastName:      params.LastName,
@@ -67,9 +67,9 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	// generate jwt token and attack to response
 	tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   owner.ID,
-		"name":  owner.FirstName,
-		"email": owner.Email,
+		"sub":   user.ID,
+		"name":  user.FirstName,
+		"email": user.Email,
 		"iat":   time.Now().Unix(),
 		"exp":   time.Now().AddDate(0, 0, 7).Unix(),
 	})
@@ -81,15 +81,24 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res registerResponse = registerResponse{
-		ID:         owner.ID,
-		Email:      owner.Email,
-		FirstName:  owner.FirstName,
-		MiddleName: owner.MiddleName.String,
-		LastName:   owner.LastName,
+	var res authResponse = authResponse{
+		ID:         user.ID,
+		Email:      user.Email,
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName.String,
+		LastName:   user.LastName,
 		Token:      token,
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(w).Encode(&res)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "unable to send data", http.StatusInternalServerError)
+		return
+	}
+}
 
 func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	var body loginInput
@@ -129,7 +138,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	})
 	token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
-	var res registerResponse = registerResponse{
+	var res authResponse = authResponse{
 		ID:         user.ID,
 		Email:      user.Email,
 		FirstName:  user.FirstName,
