@@ -41,7 +41,7 @@ func main() {
 
 	// INFO: car router (maybe i need to put it in its own packaga)
 	carRouter := http.NewServeMux()
-	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCars)
+	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), middleware.ProtectedHandleFunc(stack, handler.HandleGetAllCars))
 	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCar)
 	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateCar)
 	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertCar)
@@ -54,7 +54,6 @@ func main() {
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateBooking)
 
 	// INFO:
-
 	paymentRouter := http.NewServeMux()
 	paymentRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllPayments)
 	paymentRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetPayment)
@@ -87,7 +86,7 @@ func main() {
 	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), handler.HandleRegister)
 	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), handler.HandleLogin)
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", stack(userRouter)))
-	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", stack(carRouter)))
+	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", stack(bookingRouter)))
 	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", stack(paymentRouter)))
 	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", stack(reviewRouter)))
