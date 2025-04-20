@@ -10,6 +10,7 @@ import (
 )
 
 func (h *handler) HandleGetAllBookings(w http.ResponseWriter, r *http.Request) {
+	log.Printf("uid:%v\n", r.Context().Value("userID"))
 	bookings, err := h.query.ListBookings(h.ctx)
 	if err != nil {
 		log.Println(err.Error())
@@ -23,6 +24,7 @@ func (h *handler) HandleGetAllBookings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(bookings)
 	if err != nil {
 		log.Println(err.Error())

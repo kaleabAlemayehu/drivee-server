@@ -28,7 +28,9 @@ func main() {
 	handler := handlers.NewHandler(ctx, conn)
 	stack := middleware.CreateStack(
 		middleware.Logger,
+		middleware.Auth,
 	)
+	_ = stack
 
 	// INFO: user router (maybe i need to put it in its own package)
 	userRouter := http.NewServeMux()
@@ -84,17 +86,17 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), handler.HandleRegister)
 	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), handler.HandleLogin)
-	mux.Handle("/api/users/", http.StripPrefix("/api/users", userRouter))
-	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
-	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", bookingRouter))
-	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", paymentRouter))
-	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", reviewRouter))
-	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", carPhotoRouter))
-	mux.Handle("/api/transactions/", http.StripPrefix("/api/transactions", transactionRouter))
+	mux.Handle("/api/users/", http.StripPrefix("/api/users", stack(userRouter)))
+	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", stack(carRouter)))
+	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", stack(bookingRouter)))
+	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", stack(paymentRouter)))
+	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", stack(reviewRouter)))
+	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", stack(carPhotoRouter)))
+	mux.Handle("/api/transactions/", http.StripPrefix("/api/transactions", stack(transactionRouter)))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: stack(mux),
+		Handler: mux,
 	}
 
 	log.Printf("running server on localhost:%v", port)
