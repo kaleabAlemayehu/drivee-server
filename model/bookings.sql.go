@@ -78,11 +78,56 @@ func (q *Queries) InsertBooking(ctx context.Context, arg InsertBookingParams) (B
 	return i, err
 }
 
-const listBookings = `-- name: ListBookings :many
-SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings ORDER BY start_time
+const listBookingsForOwner = `-- name: ListBookingsForOwner :many
+SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status 
+	FROM bookings b JOIN cars c ON b.car_id = c.id
+	JOIN users u ON b.renter_id = u.id WHERE c.owner_id = $1
 `
 
-type ListBookingsRow struct {
+type ListBookingsForOwnerRow struct {
+	BookingID  uuid.UUID        `json:"booking_id"`
+	CarID      uuid.UUID        `json:"car_id"`
+	RenterID   uuid.UUID        `json:"renter_id"`
+	StartTime  pgtype.Timestamp `json:"start_time"`
+	EndTime    pgtype.Timestamp `json:"end_time"`
+	TotalPrice pgtype.Numeric   `json:"total_price"`
+	Status     BookingStatus    `json:"status"`
+}
+
+func (q *Queries) ListBookingsForOwner(ctx context.Context, ownerID uuid.UUID) ([]ListBookingsForOwnerRow, error) {
+	rows, err := q.db.Query(ctx, listBookingsForOwner, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListBookingsForOwnerRow
+	for rows.Next() {
+		var i ListBookingsForOwnerRow
+		if err := rows.Scan(
+			&i.BookingID,
+			&i.CarID,
+			&i.RenterID,
+			&i.StartTime,
+			&i.EndTime,
+			&i.TotalPrice,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listBookingsForRenter = `-- name: ListBookingsForRenter :many
+
+SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE renter_id=$1 ORDER BY start_time
+`
+
+type ListBookingsForRenterRow struct {
 	ID         uuid.UUID        `json:"id"`
 	CarID      uuid.UUID        `json:"car_id"`
 	RenterID   uuid.UUID        `json:"renter_id"`
@@ -92,15 +137,16 @@ type ListBookingsRow struct {
 	Status     BookingStatus    `json:"status"`
 }
 
-func (q *Queries) ListBookings(ctx context.Context) ([]ListBookingsRow, error) {
-	rows, err := q.db.Query(ctx, listBookings)
+// TODO: use join to fetch booking for owner and renter
+func (q *Queries) ListBookingsForRenter(ctx context.Context, renterID uuid.UUID) ([]ListBookingsForRenterRow, error) {
+	rows, err := q.db.Query(ctx, listBookingsForRenter, renterID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListBookingsRow
+	var items []ListBookingsForRenterRow
 	for rows.Next() {
-		var i ListBookingsRow
+		var i ListBookingsForRenterRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CarID,
