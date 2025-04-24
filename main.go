@@ -51,9 +51,11 @@ func main() {
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/", http.MethodGet), handler.HandleGetAllBookingsForOwner)
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/", http.MethodGet), handler.HandleGetAllBookingsForRenter)
 
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetBooking)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/{id}", http.MethodGet), handler.HandleGetBookingByOwner)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/{id}", http.MethodGet), handler.HandleGetBookingByRenter)
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertBooking)
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateBooking)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/{id}", http.MethodPatch), handler.HandleUpdateBookingByOwner)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/{id}", http.MethodPatch), handler.HandleUpdateBookingByRenter)
 
 	// INFO:
 	paymentRouter := http.NewServeMux()

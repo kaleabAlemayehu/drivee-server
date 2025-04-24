@@ -64,23 +64,60 @@ func (h *handler) HandleGetAllBookingsForRenter(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (h *handler) HandleGetBooking(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleGetBookingByOwner(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	booking, err := h.query.GetBooking(h.ctx, id)
+	var params model.GetBookingForOwnerParams
+	params.ID = id
+	params.OwnerID = ownerID
+	booking, err := h.query.GetBookingForOwner(h.ctx, params)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	err = json.NewEncoder(w).Encode(booking)
+	if err = utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send date")
+		return
+	}
+}
+
+func (h *handler) HandleGetBookingByRenter(w http.ResponseWriter, r *http.Request) {
+	renterID, err := uuid.Parse(r.Context().Value("userID").(string))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	var params model.GetBookingForRenterParams
+	params.ID = id
+	params.RenterID = renterID
+	booking, err := h.query.GetBookingForRenter(h.ctx, params)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	if err = utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send date")
 		return
 	}
 }
@@ -105,29 +142,72 @@ func (h *handler) HandleInsertBooking(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) HandleUpdateBooking(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleUpdateBookingByOwner(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	var body model.UpdateBookingParams
+
+	var body model.UpdateBookingForOwnerParams
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	body.ID = id
-	booking, err := h.query.UpdateBooking(h.ctx, body)
+	body.OwnerID = ownerID
+	booking, err := h.query.UpdateBookingForOwner(h.ctx, body)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err := json.NewEncoder(w).Encode(booking); err != nil {
+	if err := utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
+		return
+	}
+	return
+}
+
+func (h *handler) HandleUpdateBookingByRenter(w http.ResponseWriter, r *http.Request) {
+	renterID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	var body model.UpdateBookingForRenterParams
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	body.ID = id
+	body.RenterID = renterID
+	booking, err := h.query.UpdateBookingForRenter(h.ctx, body)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	if err := utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 	return

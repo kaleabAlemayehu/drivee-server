@@ -8,15 +8,57 @@ package model
 import (
 	"context"
 
+	go_postgis "github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getBooking = `-- name: GetBooking :one
-SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE id=$1
+const getBookingForOwner = `-- name: GetBookingForOwner :one
+SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status 
+	FROM bookings b JOIN cars c ON b.car_id = c.id
+	JOIN users u ON b.renter_id = u.id WHERE c.owner_id = $2 AND b.id=$1
 `
 
-type GetBookingRow struct {
+type GetBookingForOwnerParams struct {
+	ID      uuid.UUID `json:"id"`
+	OwnerID uuid.UUID `json:"owner_id"`
+}
+
+type GetBookingForOwnerRow struct {
+	BookingID  uuid.UUID        `json:"booking_id"`
+	CarID      uuid.UUID        `json:"car_id"`
+	RenterID   uuid.UUID        `json:"renter_id"`
+	StartTime  pgtype.Timestamp `json:"start_time"`
+	EndTime    pgtype.Timestamp `json:"end_time"`
+	TotalPrice pgtype.Numeric   `json:"total_price"`
+	Status     BookingStatus    `json:"status"`
+}
+
+func (q *Queries) GetBookingForOwner(ctx context.Context, arg GetBookingForOwnerParams) (GetBookingForOwnerRow, error) {
+	row := q.db.QueryRow(ctx, getBookingForOwner, arg.ID, arg.OwnerID)
+	var i GetBookingForOwnerRow
+	err := row.Scan(
+		&i.BookingID,
+		&i.CarID,
+		&i.RenterID,
+		&i.StartTime,
+		&i.EndTime,
+		&i.TotalPrice,
+		&i.Status,
+	)
+	return i, err
+}
+
+const getBookingForRenter = `-- name: GetBookingForRenter :one
+SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE id=$1 AND renter_id =$2
+`
+
+type GetBookingForRenterParams struct {
+	ID       uuid.UUID `json:"id"`
+	RenterID uuid.UUID `json:"renter_id"`
+}
+
+type GetBookingForRenterRow struct {
 	ID         uuid.UUID        `json:"id"`
 	CarID      uuid.UUID        `json:"car_id"`
 	RenterID   uuid.UUID        `json:"renter_id"`
@@ -26,9 +68,9 @@ type GetBookingRow struct {
 	Status     BookingStatus    `json:"status"`
 }
 
-func (q *Queries) GetBooking(ctx context.Context, id uuid.UUID) (GetBookingRow, error) {
-	row := q.db.QueryRow(ctx, getBooking, id)
-	var i GetBookingRow
+func (q *Queries) GetBookingForRenter(ctx context.Context, arg GetBookingForRenterParams) (GetBookingForRenterRow, error) {
+	row := q.db.QueryRow(ctx, getBookingForRenter, arg.ID, arg.RenterID)
+	var i GetBookingForRenterRow
 	err := row.Scan(
 		&i.ID,
 		&i.CarID,
@@ -42,7 +84,7 @@ func (q *Queries) GetBooking(ctx context.Context, id uuid.UUID) (GetBookingRow, 
 }
 
 const insertBooking = `-- name: InsertBooking :one
-INSERT INTO bookings( car_id, renter_id, start_time, end_time, total_price, status ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, car_id, renter_id, start_time, end_time, total_price, status, created_at, updated_at
+INSERT INTO bookings( car_id, renter_id, start_time, end_time, total_price) VALUES ($1, $2, $3, $4, $5) RETURNING id, car_id, renter_id, start_time, end_time, total_price, status, created_at, updated_at
 `
 
 type InsertBookingParams struct {
@@ -51,7 +93,6 @@ type InsertBookingParams struct {
 	StartTime  pgtype.Timestamp `json:"start_time"`
 	EndTime    pgtype.Timestamp `json:"end_time"`
 	TotalPrice pgtype.Numeric   `json:"total_price"`
-	Status     BookingStatus    `json:"status"`
 }
 
 func (q *Queries) InsertBooking(ctx context.Context, arg InsertBookingParams) (Booking, error) {
@@ -61,7 +102,6 @@ func (q *Queries) InsertBooking(ctx context.Context, arg InsertBookingParams) (B
 		arg.StartTime,
 		arg.EndTime,
 		arg.TotalPrice,
-		arg.Status,
 	)
 	var i Booking
 	err := row.Scan(
@@ -123,7 +163,6 @@ func (q *Queries) ListBookingsForOwner(ctx context.Context, ownerID uuid.UUID) (
 }
 
 const listBookingsForRenter = `-- name: ListBookingsForRenter :many
-
 SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE renter_id=$1 ORDER BY start_time
 `
 
@@ -137,7 +176,6 @@ type ListBookingsForRenterRow struct {
 	Status     BookingStatus    `json:"status"`
 }
 
-// TODO: use join to fetch booking for owner and renter
 func (q *Queries) ListBookingsForRenter(ctx context.Context, renterID uuid.UUID) ([]ListBookingsForRenterRow, error) {
 	rows, err := q.db.Query(ctx, listBookingsForRenter, renterID)
 	if err != nil {
@@ -166,22 +204,91 @@ func (q *Queries) ListBookingsForRenter(ctx context.Context, renterID uuid.UUID)
 	return items, nil
 }
 
-const updateBooking = `-- name: UpdateBooking :one
-UPDATE bookings SET status = $2, start_time = $3, end_time = $4, total_price = $5 WHERE id = $1 RETURNING id, car_id, renter_id, start_time, end_time, total_price, status, created_at, updated_at
+const updateBookingForOwner = `-- name: UpdateBookingForOwner :one
+UPDATE bookings b SET status = $3  FROM cars c WHERE b.car_id = c.id AND c.owner_id = $2 AND b.id = $1 RETURNING c.id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, c.status, c.created_at, c.updated_at, b.id, car_id, renter_id, start_time, end_time, total_price, b.status, b.created_at, b.updated_at
 `
 
-type UpdateBookingParams struct {
+type UpdateBookingForOwnerParams struct {
+	ID      uuid.UUID     `json:"id"`
+	OwnerID uuid.UUID     `json:"owner_id"`
+	Status  BookingStatus `json:"status"`
+}
+
+type UpdateBookingForOwnerRow struct {
+	ID           uuid.UUID         `json:"id"`
+	OwnerID      uuid.UUID         `json:"owner_id"`
+	Make         string            `json:"make"`
+	Model        string            `json:"model"`
+	Year         string            `json:"year"`
+	LicensePlate string            `json:"license_plate"`
+	VinNumber    string            `json:"vin_number"`
+	Transmission Transmission      `json:"transmission"`
+	FuelType     FuelType          `json:"fuel_type"`
+	Mileage      int32             `json:"mileage"`
+	Location     go_postgis.PointS `json:"location"`
+	PricePerHour pgtype.Numeric    `json:"price_per_hour"`
+	Status       StatusType        `json:"status"`
+	CreatedAt    pgtype.Timestamp  `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp  `json:"updated_at"`
+	ID_2         uuid.UUID         `json:"id_2"`
+	CarID        uuid.UUID         `json:"car_id"`
+	RenterID     uuid.UUID         `json:"renter_id"`
+	StartTime    pgtype.Timestamp  `json:"start_time"`
+	EndTime      pgtype.Timestamp  `json:"end_time"`
+	TotalPrice   pgtype.Numeric    `json:"total_price"`
+	Status_2     BookingStatus     `json:"status_2"`
+	CreatedAt_2  pgtype.Timestamp  `json:"created_at_2"`
+	UpdatedAt_2  pgtype.Timestamp  `json:"updated_at_2"`
+}
+
+func (q *Queries) UpdateBookingForOwner(ctx context.Context, arg UpdateBookingForOwnerParams) (UpdateBookingForOwnerRow, error) {
+	row := q.db.QueryRow(ctx, updateBookingForOwner, arg.ID, arg.OwnerID, arg.Status)
+	var i UpdateBookingForOwnerRow
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerID,
+		&i.Make,
+		&i.Model,
+		&i.Year,
+		&i.LicensePlate,
+		&i.VinNumber,
+		&i.Transmission,
+		&i.FuelType,
+		&i.Mileage,
+		&i.Location,
+		&i.PricePerHour,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ID_2,
+		&i.CarID,
+		&i.RenterID,
+		&i.StartTime,
+		&i.EndTime,
+		&i.TotalPrice,
+		&i.Status_2,
+		&i.CreatedAt_2,
+		&i.UpdatedAt_2,
+	)
+	return i, err
+}
+
+const updateBookingForRenter = `-- name: UpdateBookingForRenter :one
+UPDATE bookings SET start_time = $3, end_time = $4, total_price = $5 WHERE id = $1 AND renter_id = $2 RETURNING id, car_id, renter_id, start_time, end_time, total_price, status, created_at, updated_at
+`
+
+type UpdateBookingForRenterParams struct {
 	ID         uuid.UUID        `json:"id"`
-	Status     BookingStatus    `json:"status"`
+	RenterID   uuid.UUID        `json:"renter_id"`
 	StartTime  pgtype.Timestamp `json:"start_time"`
 	EndTime    pgtype.Timestamp `json:"end_time"`
 	TotalPrice pgtype.Numeric   `json:"total_price"`
 }
 
-func (q *Queries) UpdateBooking(ctx context.Context, arg UpdateBookingParams) (Booking, error) {
-	row := q.db.QueryRow(ctx, updateBooking,
+func (q *Queries) UpdateBookingForRenter(ctx context.Context, arg UpdateBookingForRenterParams) (Booking, error) {
+	row := q.db.QueryRow(ctx, updateBookingForRenter,
 		arg.ID,
-		arg.Status,
+		arg.RenterID,
 		arg.StartTime,
 		arg.EndTime,
 		arg.TotalPrice,
