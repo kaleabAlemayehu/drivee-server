@@ -29,7 +29,7 @@ func (q *Queries) GetCarPhoto(ctx context.Context, id uuid.UUID) (GetCarPhotoRow
 }
 
 const getCarPhotos = `-- name: GetCarPhotos :many
-SELECT id, car_id, photo_url FROM car_photos ORDER BY created_at
+SELECT id, car_id, photo_url FROM car_photos WHERE car_id = $1 ORDER BY created_at
 `
 
 type GetCarPhotosRow struct {
@@ -38,8 +38,8 @@ type GetCarPhotosRow struct {
 	PhotoUrl string    `json:"photo_url"`
 }
 
-func (q *Queries) GetCarPhotos(ctx context.Context) ([]GetCarPhotosRow, error) {
-	rows, err := q.db.Query(ctx, getCarPhotos)
+func (q *Queries) GetCarPhotos(ctx context.Context, carID uuid.UUID) ([]GetCarPhotosRow, error) {
+	rows, err := q.db.Query(ctx, getCarPhotos, carID)
 	if err != nil {
 		return nil, err
 	}

@@ -7,19 +7,26 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kaleabAlemayehu/drivee-server/model"
+	"github.com/kaleabAlemayehu/drivee-server/utils"
 )
 
 func (h *handler) HandleGetAllCarPhotos(w http.ResponseWriter, r *http.Request) {
-	photos, err := h.query.GetCarPhotos(h.ctx)
+	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	photos, err := h.query.GetCarPhotos(h.ctx, id)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(photos); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, photos); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
