@@ -59,7 +59,7 @@ func (h *handler) HandleInsertUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
-	id, err := uuid.Parse(r.PathValue("id"))
+	id, err := uuid.Parse(r.Context().Value("userID").(string))
 	if err != nil {
 		log.Println("unable to get id parameter")
 		http.Error(w, "bad request", http.StatusBadRequest)
