@@ -112,7 +112,7 @@ func (q *Queries) InsertCar(ctx context.Context, arg InsertCarParams) (Car, erro
 }
 
 const listCars = `-- name: ListCars :many
-SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year
+SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars WHERE status='avaliable' ORDER BY year
 `
 
 type ListCarsRow struct {
@@ -166,11 +166,12 @@ func (q *Queries) ListCars(ctx context.Context) ([]ListCarsRow, error) {
 }
 
 const updateCar = `-- name: UpdateCar :one
-UPDATE cars SET mileage = $2, location = ST_SetSRID(ST_MakePoint($3, $4), 4326), price_per_hour = $5, status = $6 WHERE id = $1 RETURNING id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, created_at, updated_at
+UPDATE cars SET mileage = $3, location = ST_SetSRID(ST_MakePoint($4, $5), 4326), price_per_hour = $6, status = $7 WHERE id = $1 AND owner_id = $2 RETURNING id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, created_at, updated_at
 `
 
 type UpdateCarParams struct {
 	ID            uuid.UUID      `json:"id"`
+	OwnerID       uuid.UUID      `json:"owner_id"`
 	Mileage       int32          `json:"mileage"`
 	StMakepoint   interface{}    `json:"st_makepoint"`
 	StMakepoint_2 interface{}    `json:"st_makepoint_2"`
@@ -181,6 +182,7 @@ type UpdateCarParams struct {
 func (q *Queries) UpdateCar(ctx context.Context, arg UpdateCarParams) (Car, error) {
 	row := q.db.QueryRow(ctx, updateCar,
 		arg.ID,
+		arg.OwnerID,
 		arg.Mileage,
 		arg.StMakepoint,
 		arg.StMakepoint_2,

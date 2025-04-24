@@ -1,6 +1,6 @@
 
 -- name: ListCars :many
-SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year;
+SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars WHERE status='avaliable' ORDER BY year;
 
 
 -- name: GetCar :one
@@ -12,6 +12,6 @@ INSERT INTO cars( owner_id, make, model, year, license_plate, vin_number, transm
 
 
 -- name: UpdateCar :one
-UPDATE cars SET mileage = $2, location = ST_SetSRID(ST_MakePoint($3, $4), 4326), price_per_hour = $5, status = $6 WHERE id = $1 RETURNING *;
+UPDATE cars SET mileage = $3, location = ST_SetSRID(ST_MakePoint($4, $5), 4326), price_per_hour = $6, status = $7 WHERE id = $1 AND owner_id = $2 RETURNING *;
 
 
