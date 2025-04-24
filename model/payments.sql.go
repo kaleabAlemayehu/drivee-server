@@ -13,8 +13,13 @@ import (
 )
 
 const getPayment = `-- name: GetPayment :one
-SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments WHERE id=$1
+SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments WHERE id=$1 AND renter_id =$2
 `
+
+type GetPaymentParams struct {
+	ID       uuid.UUID `json:"id"`
+	RenterID uuid.UUID `json:"renter_id"`
+}
 
 type GetPaymentRow struct {
 	ID            uuid.UUID      `json:"id"`
@@ -27,8 +32,8 @@ type GetPaymentRow struct {
 	TransactionID string         `json:"transaction_id"`
 }
 
-func (q *Queries) GetPayment(ctx context.Context, id uuid.UUID) (GetPaymentRow, error) {
-	row := q.db.QueryRow(ctx, getPayment, id)
+func (q *Queries) GetPayment(ctx context.Context, arg GetPaymentParams) (GetPaymentRow, error) {
+	row := q.db.QueryRow(ctx, getPayment, arg.ID, arg.RenterID)
 	var i GetPaymentRow
 	err := row.Scan(
 		&i.ID,
@@ -84,7 +89,7 @@ func (q *Queries) InsertPayment(ctx context.Context, arg InsertPaymentParams) (P
 }
 
 const listPayments = `-- name: ListPayments :many
-SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments ORDER BY created_at
+SELECT id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id FROM payments WHERE renter_id = $1 ORDER BY created_at
 `
 
 type ListPaymentsRow struct {
@@ -98,8 +103,8 @@ type ListPaymentsRow struct {
 	TransactionID string         `json:"transaction_id"`
 }
 
-func (q *Queries) ListPayments(ctx context.Context) ([]ListPaymentsRow, error) {
-	rows, err := q.db.Query(ctx, listPayments)
+func (q *Queries) ListPayments(ctx context.Context, renterID uuid.UUID) ([]ListPaymentsRow, error) {
+	rows, err := q.db.Query(ctx, listPayments, renterID)
 	if err != nil {
 		return nil, err
 	}

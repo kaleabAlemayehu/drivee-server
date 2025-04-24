@@ -7,45 +7,60 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kaleabAlemayehu/drivee-server/model"
+	"github.com/kaleabAlemayehu/drivee-server/utils"
 )
 
 func (h *handler) HandleGetAllPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := h.query.ListPayments(h.ctx)
+	renterID, err := uuid.Parse(r.Context().Value("userID").(string))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	payments, err := h.query.ListPayments(h.ctx, renterID)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	if payments == nil {
 		log.Println("there is not booking to list")
-		w.WriteHeader(http.StatusNoContent)
-		w.Write([]byte("[]"))
+		utils.SendResponse(w, "success", http.StatusNoContent, []byte{})
 		return
 	}
-	if err := json.NewEncoder(w).Encode(payments); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, payments); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
 
 func (h *handler) HandleGetPayment(w http.ResponseWriter, r *http.Request) {
+	renterID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	payment, err := h.query.GetPayment(h.ctx, id)
+	var params model.GetPaymentParams
+	params.ID = id
+	params.RenterID = renterID
+	payment, err := h.query.GetPayment(h.ctx, params)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(payment); err != nil {
+	if err := utils.SendResponse(w, "succes", http.StatusOK, payment); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
