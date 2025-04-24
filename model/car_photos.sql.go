@@ -8,7 +8,9 @@ package model
 import (
 	"context"
 
+	go_postgis "github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getCarPhoto = `-- name: GetCarPhoto :one
@@ -81,23 +83,62 @@ func (q *Queries) InsertCarPhoto(ctx context.Context, arg InsertCarPhotoParams) 
 }
 
 const updateCarPhoto = `-- name: UpdateCarPhoto :one
-UPDATE car_photos SET photo_url=$2 WHERE id =$1 RETURNING id, car_id, photo_url, created_at, updated_at
+UPDATE car_photos cp SET photo_url=$3 FROM cars c WHERE cp.car_id = c.id AND cp.id =$1 AND c.owner_id = $2 RETURNING c.id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, c.created_at, c.updated_at, cp.id, car_id, photo_url, cp.created_at, cp.updated_at
 `
 
 type UpdateCarPhotoParams struct {
 	ID       uuid.UUID `json:"id"`
+	OwnerID  uuid.UUID `json:"owner_id"`
 	PhotoUrl string    `json:"photo_url"`
 }
 
-func (q *Queries) UpdateCarPhoto(ctx context.Context, arg UpdateCarPhotoParams) (CarPhoto, error) {
-	row := q.db.QueryRow(ctx, updateCarPhoto, arg.ID, arg.PhotoUrl)
-	var i CarPhoto
+type UpdateCarPhotoRow struct {
+	ID           uuid.UUID         `json:"id"`
+	OwnerID      uuid.UUID         `json:"owner_id"`
+	Make         string            `json:"make"`
+	Model        string            `json:"model"`
+	Year         string            `json:"year"`
+	LicensePlate string            `json:"license_plate"`
+	VinNumber    string            `json:"vin_number"`
+	Transmission Transmission      `json:"transmission"`
+	FuelType     FuelType          `json:"fuel_type"`
+	Mileage      int32             `json:"mileage"`
+	Location     go_postgis.PointS `json:"location"`
+	PricePerHour pgtype.Numeric    `json:"price_per_hour"`
+	Status       StatusType        `json:"status"`
+	CreatedAt    pgtype.Timestamp  `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp  `json:"updated_at"`
+	ID_2         uuid.UUID         `json:"id_2"`
+	CarID        uuid.UUID         `json:"car_id"`
+	PhotoUrl     string            `json:"photo_url"`
+	CreatedAt_2  pgtype.Timestamp  `json:"created_at_2"`
+	UpdatedAt_2  pgtype.Timestamp  `json:"updated_at_2"`
+}
+
+func (q *Queries) UpdateCarPhoto(ctx context.Context, arg UpdateCarPhotoParams) (UpdateCarPhotoRow, error) {
+	row := q.db.QueryRow(ctx, updateCarPhoto, arg.ID, arg.OwnerID, arg.PhotoUrl)
+	var i UpdateCarPhotoRow
 	err := row.Scan(
 		&i.ID,
-		&i.CarID,
-		&i.PhotoUrl,
+		&i.OwnerID,
+		&i.Make,
+		&i.Model,
+		&i.Year,
+		&i.LicensePlate,
+		&i.VinNumber,
+		&i.Transmission,
+		&i.FuelType,
+		&i.Mileage,
+		&i.Location,
+		&i.PricePerHour,
+		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ID_2,
+		&i.CarID,
+		&i.PhotoUrl,
+		&i.CreatedAt_2,
+		&i.UpdatedAt_2,
 	)
 	return i, err
 }

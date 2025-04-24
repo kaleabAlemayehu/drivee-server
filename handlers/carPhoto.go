@@ -66,7 +66,6 @@ func (h *handler) HandleInsertCarPhoto(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-
 	if err := json.NewEncoder(w).Encode(photo); err != nil {
 		log.Println(err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -75,30 +74,35 @@ func (h *handler) HandleInsertCarPhoto(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleUpdateCarPhoto(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	var body model.UpdateCarPhotoParams
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	body.ID = id
-
+	body.OwnerID = ownerID
 	photo, err := h.query.UpdateCarPhoto(h.ctx, body)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-
-	if err := json.NewEncoder(w).Encode(photo); err != nil {
+	if err := utils.SendResponse(w, "succes", http.StatusOK, photo); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
