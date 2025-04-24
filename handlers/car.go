@@ -2,46 +2,25 @@ package handlers
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 
-	"github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaleabAlemayehu/drivee-server/model"
+	"github.com/kaleabAlemayehu/drivee-server/utils"
 )
 
-type carParams struct {
-	id             uuid.UUID      `json:"id"`
-	ownerid        uuid.UUID      `json:"owner_id"`
-	make           string         `json:"make"`
-	model          string         `json:"model"`
-	year           string         `json:"year"`
-	license_plate  string         `json:"license_plate"`
-	vin_number     string         `json:"vin_number"`
-	transmission   string         `json:"transmission"`
-	fuel_type      model.FuelType `json:"fuel_type"`
-	mileage        int32          `json:"mileage"`
-	location       postgis.PointS `json:"location"`
-	price_per_hour pgtype.Numeric `json:"price_per_hour"`
-}
-
 func (h *handler) HandleGetAllCars(w http.ResponseWriter, r *http.Request) {
-
 	cars, err := h.query.ListCars(h.ctx)
 	if err != nil {
-		log.Println("unable to fetch cars")
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch cars")
 		return
 	}
-
-	err = json.NewEncoder(w).Encode(&cars)
-	if err != nil {
-		log.Println("unable to fetch cars")
+	if err = utils.SendResponse(w, "succes", http.StatusOK, cars); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
@@ -50,32 +29,23 @@ func (h *handler) HandleGetCar(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	car, err := h.query.GetCar(h.ctx, id)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	err = json.NewEncoder(w).Encode(&car)
-	if err != nil {
+	if err = utils.SendResponse(w, "succes", http.StatusOK, car); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
 
 func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
-	bodyByte, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err.Error())
-		log.Println("unable to marshal body")
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
 	var body struct {
 		OwnerID      uuid.UUID          `json:"owner_id"`
 		Make         string             `json:"make"`
@@ -93,11 +63,9 @@ func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
 		PricePerHour pgtype.Numeric   `json:"price_per_hour"`
 		Status       model.StatusType `json:"status"`
 	}
-	err = json.Unmarshal(bodyByte, &body)
-	log.Printf(" \n \n struct %v \n", body)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	params := model.InsertCarParams{
@@ -119,33 +87,29 @@ func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
 	car, err := h.query.InsertCar(h.ctx, params)
 	if err != nil {
 		log.Println(err.Error())
-		log.Println("the query is not working")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	err = json.NewEncoder(w).Encode(&car)
-	if err != nil {
+	if err = utils.SendResponse(w, "succes", http.StatusCreated, car); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
 }
 
 func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
+		return
+	}
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
-	_ = id
-	bodyByte, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
-		return
-	}
-
 	var body struct {
 		Mileage  int32 `json:"mileage"`
 		Location struct {
@@ -156,10 +120,9 @@ func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
 		Status       model.StatusType `json:"status"`
 	}
 
-	err = json.Unmarshal(bodyByte, &body)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		log.Println(err.Error())
-		http.Error(w, "bad request", http.StatusBadRequest)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
 	payload := model.UpdateCarParams{
@@ -169,21 +132,18 @@ func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
 		StMakepoint_2: body.Location.Y,
 		PricePerHour:  body.PricePerHour,
 		Status:        model.StatusType(body.Status),
+		OwnerID:       ownerID,
 	}
 
 	car, err := h.query.UpdateCar(h.ctx, payload)
 	if err != nil {
 		log.Println(err.Error())
-		log.Println("fucking query not working")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	err = json.NewEncoder(w).Encode(&car)
-	if err != nil {
+	if err := utils.SendResponse(w, "succes", http.StatusOK, car); err != nil {
 		log.Println(err.Error())
-		log.Println("unable to send data")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
-	return
 }
