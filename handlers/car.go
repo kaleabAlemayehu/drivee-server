@@ -46,8 +46,13 @@ func (h *handler) HandleGetCar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
 	var body struct {
-		OwnerID      uuid.UUID          `json:"owner_id"`
 		Make         string             `json:"make"`
 		Model        string             `json:"model"`
 		Year         string             `json:"year"`
@@ -69,7 +74,7 @@ func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	params := model.InsertCarParams{
-		OwnerID:       body.OwnerID,
+		OwnerID:       ownerID,
 		Make:          body.Make,
 		Model:         body.Model,
 		Year:          body.Year,
