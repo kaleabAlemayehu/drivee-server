@@ -73,7 +73,7 @@ func (q *Queries) InsertReview(ctx context.Context, arg InsertReviewParams) (Rev
 }
 
 const listReviews = `-- name: ListReviews :many
-SELECT id, reviewer_id, target_id, booking_id, rating, comment FROM reviews ORDER BY updated_at
+SELECT id, reviewer_id, target_id, booking_id, rating, comment FROM reviews WHERE target_id = $1 ORDER BY updated_at
 `
 
 type ListReviewsRow struct {
@@ -85,8 +85,8 @@ type ListReviewsRow struct {
 	Comment    string    `json:"comment"`
 }
 
-func (q *Queries) ListReviews(ctx context.Context) ([]ListReviewsRow, error) {
-	rows, err := q.db.Query(ctx, listReviews)
+func (q *Queries) ListReviews(ctx context.Context, targetID uuid.UUID) ([]ListReviewsRow, error) {
+	rows, err := q.db.Query(ctx, listReviews, targetID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,17 +113,23 @@ func (q *Queries) ListReviews(ctx context.Context) ([]ListReviewsRow, error) {
 }
 
 const updateReview = `-- name: UpdateReview :one
-UPDATE reviews SET rating = $2, comment = $3 WHERE id = $1 RETURNING id, reviewer_id, target_id, booking_id, rating, comment, created_at, updated_at
+UPDATE reviews SET rating = $3, comment = $4 WHERE id = $1 AND reviewer_id =$2 RETURNING id, reviewer_id, target_id, booking_id, rating, comment, created_at, updated_at
 `
 
 type UpdateReviewParams struct {
-	ID      uuid.UUID `json:"id"`
-	Rating  int32     `json:"rating"`
-	Comment string    `json:"comment"`
+	ID         uuid.UUID `json:"id"`
+	ReviewerID uuid.UUID `json:"reviewer_id"`
+	Rating     int32     `json:"rating"`
+	Comment    string    `json:"comment"`
 }
 
 func (q *Queries) UpdateReview(ctx context.Context, arg UpdateReviewParams) (Review, error) {
-	row := q.db.QueryRow(ctx, updateReview, arg.ID, arg.Rating, arg.Comment)
+	row := q.db.QueryRow(ctx, updateReview,
+		arg.ID,
+		arg.ReviewerID,
+		arg.Rating,
+		arg.Comment,
+	)
 	var i Review
 	err := row.Scan(
 		&i.ID,
