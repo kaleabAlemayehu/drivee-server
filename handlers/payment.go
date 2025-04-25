@@ -78,7 +78,7 @@ func (h *handler) HandleInsertPayment(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-
+	body.RenterID = renterID
 	payment, err := h.query.InsertPayment(h.ctx, body)
 	if err != nil {
 		log.Println(err.Error())

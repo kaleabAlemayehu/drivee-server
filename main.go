@@ -34,17 +34,17 @@ func main() {
 
 	// INFO: user router (maybe i need to put it in its own package)
 	userRouter := http.NewServeMux()
-	userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllUser)
+	// userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllUser)
+	// userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertUser)
 	userRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetUser)
 	userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPatch), handler.HandleUpdateUser)
-	userRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertUser)
 
 	// INFO: car router (maybe i need to put it in its own packaga)
 	carRouter := http.NewServeMux()
-	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), middleware.ProtectedHandleFunc(stack, handler.HandleGetAllCars))
+	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCars)
 	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCar)
-	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateCar)
-	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertCar)
+	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), middleware.ProtectedHandleFunc(stack, handler.HandleUpdateCar))
+	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), middleware.ProtectedHandleFunc(stack, handler.HandleInsertCar))
 
 	// INFO:
 	bookingRouter := http.NewServeMux()
@@ -76,8 +76,8 @@ func main() {
 
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCarPhotos)
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCarPhoto)
-	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertCarPhoto)
-	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateCarPhoto)
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), middleware.ProtectedHandleFunc(stack, handler.HandleInsertCarPhoto))
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), middleware.ProtectedHandleFunc(stack, handler.HandleUpdateCarPhoto))
 
 	transactionRouter := http.NewServeMux()
 
@@ -94,7 +94,7 @@ func main() {
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", stack(bookingRouter)))
 	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", stack(paymentRouter)))
 	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", stack(reviewRouter)))
-	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", stack(carPhotoRouter)))
+	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", carPhotoRouter))
 	mux.Handle("/api/transactions/", http.StripPrefix("/api/transactions", stack(transactionRouter)))
 
 	server := http.Server{
