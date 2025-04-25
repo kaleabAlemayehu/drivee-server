@@ -133,6 +133,7 @@ func (q *Queries) ListPayments(ctx context.Context, renterID uuid.UUID) ([]ListP
 }
 
 const updatePayment = `-- name: UpdatePayment :one
+
 UPDATE payments SET payment_status = $2  WHERE id = $1 RETURNING id, booking_id, renter_id, owner_id, amount, payment_status, payment_method, transaction_id, created_at, updated_at
 `
 
@@ -141,6 +142,7 @@ type UpdatePaymentParams struct {
 	PaymentStatus PaymentStatus `json:"payment_status"`
 }
 
+// TODO: this is going to be internal query obviously
 func (q *Queries) UpdatePayment(ctx context.Context, arg UpdatePaymentParams) (Payment, error) {
 	row := q.db.QueryRow(ctx, updatePayment, arg.ID, arg.PaymentStatus)
 	var i Payment

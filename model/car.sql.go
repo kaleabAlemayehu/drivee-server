@@ -112,6 +112,7 @@ func (q *Queries) InsertCar(ctx context.Context, arg InsertCarParams) (Car, erro
 }
 
 const listCars = `-- name: ListCars :many
+
 SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars WHERE status='avaliable' ORDER BY year
 `
 
@@ -131,6 +132,7 @@ type ListCarsRow struct {
 	Status       StatusType        `json:"status"`
 }
 
+// TODO: will add pagenation using LIMIT and OFFSET
 func (q *Queries) ListCars(ctx context.Context) ([]ListCarsRow, error) {
 	rows, err := q.db.Query(ctx, listCars)
 	if err != nil {
