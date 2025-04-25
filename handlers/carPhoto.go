@@ -66,7 +66,7 @@ func (h *handler) HandleInsertCarPhoto(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err := json.NewEncoder(w).Encode(photo); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, photo); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
 		return
@@ -100,7 +100,7 @@ func (h *handler) HandleUpdateCarPhoto(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err := utils.SendResponse(w, "succes", http.StatusOK, photo); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, photo); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
