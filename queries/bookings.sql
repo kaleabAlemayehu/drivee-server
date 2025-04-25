@@ -22,4 +22,4 @@ INSERT INTO bookings( car_id, renter_id, start_time, end_time, total_price) VALU
 UPDATE bookings b SET status = $3  FROM cars c WHERE b.car_id = c.id AND c.owner_id = $2 AND b.id = $1 RETURNING *;
 
 -- name: UpdateBookingForRenter :one
-UPDATE bookings SET start_time = $3, end_time = $4, total_price = $5 WHERE id = $1 AND renter_id = $2 RETURNING *;
+UPDATE bookings SET start_time = $3, end_time = $4, total_price = $5 , status='pending' WHERE id = $1 AND renter_id = $2 RETURNING *;

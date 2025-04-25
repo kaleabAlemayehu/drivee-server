@@ -274,7 +274,7 @@ func (q *Queries) UpdateBookingForOwner(ctx context.Context, arg UpdateBookingFo
 }
 
 const updateBookingForRenter = `-- name: UpdateBookingForRenter :one
-UPDATE bookings SET start_time = $3, end_time = $4, total_price = $5 WHERE id = $1 AND renter_id = $2 RETURNING id, car_id, renter_id, start_time, end_time, total_price, status, created_at, updated_at
+UPDATE bookings SET start_time = $3, end_time = $4, total_price = $5 , status='pending' WHERE id = $1 AND renter_id = $2 RETURNING id, car_id, renter_id, start_time, end_time, total_price, status, created_at, updated_at
 `
 
 type UpdateBookingForRenterParams struct {
