@@ -115,7 +115,7 @@ func (h *handler) HandleGetBookingByRenter(w http.ResponseWriter, r *http.Reques
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err = utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
+	if err = utils.SendResponse(w, "success", http.StatusOK, booking); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send date")
 		return
@@ -142,7 +142,7 @@ func (h *handler) HandleInsertBooking(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err := utils.SendResponse(w, "error", http.StatusOK, booking); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, booking); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send created data")
 		return
@@ -177,7 +177,7 @@ func (h *handler) HandleUpdateBookingByOwner(w http.ResponseWriter, r *http.Requ
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err := utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, booking); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
@@ -212,7 +212,7 @@ func (h *handler) HandleUpdateBookingByRenter(w http.ResponseWriter, r *http.Req
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err := utils.SendResponse(w, "succes", http.StatusOK, booking); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, booking); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
