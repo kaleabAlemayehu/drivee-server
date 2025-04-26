@@ -11,6 +11,7 @@ import (
 	connection "github.com/kaleabAlemayehu/drivee-server/connection"
 	"github.com/kaleabAlemayehu/drivee-server/handlers"
 	"github.com/kaleabAlemayehu/drivee-server/middleware"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -87,8 +88,8 @@ func main() {
 	transactionRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateTransaction)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), handler.HandleRegister)
-	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), handler.HandleLogin)
+	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), middleware.ProtectedHandleFunc(middleware.CreateStack(middleware.Logger), handler.HandleRegister))
+	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), middleware.ProtectedHandleFunc(middleware.CreateStack(middleware.Logger), handler.HandleLogin))
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", stack(userRouter)))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", stack(bookingRouter)))
@@ -99,7 +100,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: mux,
+		Handler: cors.Default().Handler(mux),
 	}
 
 	log.Printf("running server on localhost:%v", port)
