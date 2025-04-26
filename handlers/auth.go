@@ -44,14 +44,9 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	// insert into the table
 	user, err := h.query.InsertUser(h.ctx, model.InsertUserParams{
-		FirstName:     params.FirstName,
-		MiddleName:    params.MiddleName,
-		LastName:      params.LastName,
-		Email:         params.Email,
-		Password:      hashedPass,
-		PhoneNumber:   params.PhoneNumber,
-		AccountNumber: params.AccountNumber,
-		BankName:      params.BankName,
+		FirstName: params.FirstName,
+		Email:     params.Email,
+		Password:  hashedPass,
 	})
 	if err != nil {
 		log.Println(err.Error())
@@ -79,7 +74,6 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		Email:      user.Email,
 		FirstName:  user.FirstName,
 		MiddleName: user.MiddleName.String,
-		LastName:   user.LastName,
 		Token:      token,
 	}
 
@@ -138,7 +132,6 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Email:      user.Email,
 		FirstName:  user.FirstName,
 		MiddleName: user.MiddleName.String,
-		LastName:   user.LastName,
 		Token:      token,
 	}
 

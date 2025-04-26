@@ -21,15 +21,15 @@ type GetUserRow struct {
 	ID            uuid.UUID   `json:"id"`
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      string      `json:"last_name"`
+	LastName      pgtype.Text `json:"last_name"`
 	Email         string      `json:"email"`
 	Password      string      `json:"password"`
-	DriverLicense string      `json:"driver_license"`
+	DriverLicense pgtype.Text `json:"driver_license"`
 	IsOwner       pgtype.Bool `json:"is_owner"`
 	IsRenter      pgtype.Bool `json:"is_renter"`
-	PhoneNumber   string      `json:"phone_number"`
-	AccountNumber string      `json:"account_number"`
-	BankName      string      `json:"bank_name"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	AccountNumber pgtype.Text `json:"account_number"`
+	BankName      pgtype.Text `json:"bank_name"`
 }
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
@@ -53,35 +53,17 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error)
 }
 
 const insertUser = `-- name: InsertUser :one
-INSERT INTO users (first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name)
-VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
+INSERT INTO users (first_name, email, password) VALUES ( $1, $2, $3) RETURNING id, first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
 `
 
 type InsertUserParams struct {
-	FirstName     string      `json:"first_name"`
-	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      string      `json:"last_name"`
-	Email         string      `json:"email"`
-	Password      string      `json:"password"`
-	DriverLicense string      `json:"driver_license"`
-	PhoneNumber   string      `json:"phone_number"`
-	AccountNumber string      `json:"account_number"`
-	BankName      string      `json:"bank_name"`
+	FirstName string `json:"first_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
 func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, insertUser,
-		arg.FirstName,
-		arg.MiddleName,
-		arg.LastName,
-		arg.Email,
-		arg.Password,
-		arg.DriverLicense,
-		arg.PhoneNumber,
-		arg.AccountNumber,
-		arg.BankName,
-	)
+	row := q.db.QueryRow(ctx, insertUser, arg.FirstName, arg.Email, arg.Password)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -111,14 +93,14 @@ type ListUserRow struct {
 	ID            uuid.UUID   `json:"id"`
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      string      `json:"last_name"`
+	LastName      pgtype.Text `json:"last_name"`
 	Email         string      `json:"email"`
-	DriverLicense string      `json:"driver_license"`
+	DriverLicense pgtype.Text `json:"driver_license"`
 	IsOwner       pgtype.Bool `json:"is_owner"`
 	IsRenter      pgtype.Bool `json:"is_renter"`
-	PhoneNumber   string      `json:"phone_number"`
-	AccountNumber string      `json:"account_number"`
-	BankName      string      `json:"bank_name"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	AccountNumber pgtype.Text `json:"account_number"`
+	BankName      pgtype.Text `json:"bank_name"`
 }
 
 func (q *Queries) ListUser(ctx context.Context) ([]ListUserRow, error) {
@@ -162,13 +144,13 @@ type UpdateUserParams struct {
 	ID            uuid.UUID   `json:"id"`
 	FirstName     string      `json:"first_name"`
 	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      string      `json:"last_name"`
+	LastName      pgtype.Text `json:"last_name"`
 	Email         string      `json:"email"`
 	Password      string      `json:"password"`
-	PhoneNumber   string      `json:"phone_number"`
-	AccountNumber string      `json:"account_number"`
-	BankName      string      `json:"bank_name"`
-	DriverLicense string      `json:"driver_license"`
+	PhoneNumber   pgtype.Text `json:"phone_number"`
+	AccountNumber pgtype.Text `json:"account_number"`
+	BankName      pgtype.Text `json:"bank_name"`
+	DriverLicense pgtype.Text `json:"driver_license"`
 	IsOwner       pgtype.Bool `json:"is_owner"`
 	IsRenter      pgtype.Bool `json:"is_renter"`
 }

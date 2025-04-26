@@ -20,7 +20,7 @@ type GetUserByEmailRow struct {
 	ID         uuid.UUID   `json:"id"`
 	FirstName  string      `json:"first_name"`
 	MiddleName pgtype.Text `json:"middle_name"`
-	LastName   string      `json:"last_name"`
+	LastName   pgtype.Text `json:"last_name"`
 	Email      string      `json:"email"`
 	Password   string      `json:"password"`
 }
