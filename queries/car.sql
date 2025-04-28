@@ -1,14 +1,14 @@
 -- TODO: will add pagenation using LIMIT and OFFSET
 
 -- name: ListCars :many
-SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars WHERE status='avaliable' ORDER BY year;
+SELECT id, owner_id, thumbnail_picture, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars WHERE status='avaliable' ORDER BY year;
 
 -- name: GetCar :one
-SELECT id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status FROM cars WHERE id = $1 LIMIT 1;
+SELECT id, owner_id, thumbnail_picture,make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status FROM cars WHERE id = $1 LIMIT 1;
 
 
 -- name: InsertCar :one
-INSERT INTO cars( owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($10, $11), 4326), $12, $13 ) RETURNING *;
+INSERT INTO cars( owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, thumbnail_picture) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($10, $11), 4326), $12, $13, $14 ) RETURNING *;
 
 
 -- name: UpdateCar :one

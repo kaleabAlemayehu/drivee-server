@@ -18,7 +18,7 @@ func (h *handler) HandleGetAllCars(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch cars")
 		return
 	}
-	if err = utils.SendResponse(w, "succes", http.StatusOK, cars); err != nil {
+	if err = utils.SendResponse(w, "success", http.StatusOK, cars); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
