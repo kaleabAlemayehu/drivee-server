@@ -27,11 +27,17 @@ func main() {
 	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
 
 	handler := handlers.NewHandler(ctx, conn)
-	stack := middleware.CreateStack(
-		middleware.Logger,
+	secure := middleware.CreateStack(
 		middleware.Auth,
 	)
-	_ = stack
+
+	secureFunc := middleware.CreateStackFunc(
+		middleware.Auth,
+	)
+	free := middleware.CreateStack(
+		cors.Default().Handler,
+		middleware.Logger,
+	)
 
 	// INFO: user router (maybe i need to put it in its own package)
 	userRouter := http.NewServeMux()
@@ -42,10 +48,11 @@ func main() {
 
 	// INFO: car router (maybe i need to put it in its own packaga)
 	carRouter := http.NewServeMux()
+
 	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCars)
 	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCar)
-	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), middleware.ProtectedHandleFunc(stack, handler.HandleUpdateCar))
-	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), middleware.ProtectedHandleFunc(stack, handler.HandleInsertCar))
+	carRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), secureFunc(handler.HandleUpdateCar))
+	carRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), secureFunc(handler.HandleInsertCar))
 
 	// INFO:
 	bookingRouter := http.NewServeMux()
@@ -77,8 +84,8 @@ func main() {
 
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCarPhotos)
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCarPhoto)
-	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), middleware.ProtectedHandleFunc(stack, handler.HandleInsertCarPhoto))
-	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), middleware.ProtectedHandleFunc(stack, handler.HandleUpdateCarPhoto))
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), secureFunc(handler.HandleInsertCarPhoto))
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), secureFunc(handler.HandleUpdateCarPhoto))
 
 	transactionRouter := http.NewServeMux()
 
@@ -88,19 +95,19 @@ func main() {
 	transactionRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateTransaction)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), middleware.ProtectedHandleFunc(middleware.CreateStack(middleware.Logger), handler.HandleRegister))
-	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), middleware.ProtectedHandleFunc(middleware.CreateStack(middleware.Logger), handler.HandleLogin))
-	mux.Handle("/api/users/", http.StripPrefix("/api/users", stack(userRouter)))
+	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), handler.HandleRegister)
+	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), handler.HandleLogin)
+	mux.Handle("/api/users/", http.StripPrefix("/api/users", secure(userRouter)))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
-	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", stack(bookingRouter)))
-	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", stack(paymentRouter)))
-	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", stack(reviewRouter)))
+	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", secure(bookingRouter)))
+	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", secure(paymentRouter)))
+	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", secure(reviewRouter)))
 	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", carPhotoRouter))
-	mux.Handle("/api/transactions/", http.StripPrefix("/api/transactions", stack(transactionRouter)))
+	mux.Handle("/api/transactions/", http.StripPrefix("/api/transactions", secure(transactionRouter)))
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: cors.Default().Handler(mux),
+		Handler: free(mux),
 	}
 
 	log.Printf("running server on localhost:%v", port)
