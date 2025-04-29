@@ -38,7 +38,7 @@ func (h *handler) HandleGetCar(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	if err = utils.SendResponse(w, "succes", http.StatusOK, car); err != nil {
+	if err = utils.SendResponse(w, "success", http.StatusOK, car); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return

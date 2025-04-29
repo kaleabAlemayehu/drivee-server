@@ -82,7 +82,7 @@ func main() {
 	// INFO:
 	carPhotoRouter := http.NewServeMux()
 
-	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllCarPhotos)
+	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /car/{id}", http.MethodGet), handler.HandleGetAllCarPhotos)
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetCarPhoto)
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), secureFunc(handler.HandleInsertCarPhoto))
 	carPhotoRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), secureFunc(handler.HandleUpdateCarPhoto))
