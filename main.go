@@ -97,6 +97,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc(fmt.Sprintf("%s /api/register", http.MethodPost), handler.HandleRegister)
 	mux.HandleFunc(fmt.Sprintf("%s /api/login", http.MethodPost), handler.HandleLogin)
+	// TODO: may get rid of after move to cloudnary
+	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", secure(userRouter)))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", secure(bookingRouter)))
