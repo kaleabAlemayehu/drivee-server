@@ -17,7 +17,7 @@ func (h *handler) HandleGetAllPayments(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	payments, err := h.query.ListPayments(h.ctx, renterID)
+	payments, err := h.query.ListPayments(r.Context(), renterID)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -51,7 +51,7 @@ func (h *handler) HandleGetPayment(w http.ResponseWriter, r *http.Request) {
 	var params model.GetPaymentParams
 	params.ID = id
 	params.RenterID = renterID
-	payment, err := h.query.GetPayment(h.ctx, params)
+	payment, err := h.query.GetPayment(r.Context(), params)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -79,7 +79,7 @@ func (h *handler) HandleInsertPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body.RenterID = renterID
-	payment, err := h.query.InsertPayment(h.ctx, body)
+	payment, err := h.query.InsertPayment(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -107,7 +107,7 @@ func (h *handler) HandleUpdatePayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body.ID = id
-	payment, err := h.query.UpdatePayment(h.ctx, body)
+	payment, err := h.query.UpdatePayment(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")

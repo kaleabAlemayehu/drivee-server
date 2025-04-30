@@ -43,7 +43,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// insert into the table
-	user, err := h.query.InsertUser(h.ctx, model.InsertUserParams{
+	user, err := h.query.InsertUser(r.Context(), model.InsertUserParams{
 		FirstName: params.FirstName,
 		Email:     params.Email,
 		Password:  hashedPass,
@@ -92,7 +92,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.query.GetUserByEmail(h.ctx, body.Email)
+	user, err := h.query.GetUserByEmail(r.Context(), body.Email)
 	if err != nil {
 		log.Println(err)
 		utils.SendResponse(w, "error", http.StatusBadRequest, "invalid email or password")

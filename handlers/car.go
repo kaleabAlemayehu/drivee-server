@@ -12,7 +12,7 @@ import (
 )
 
 func (h *handler) HandleGetAllCars(w http.ResponseWriter, r *http.Request) {
-	cars, err := h.query.ListCars(h.ctx)
+	cars, err := h.query.ListCars(r.Context())
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch cars")
@@ -32,7 +32,7 @@ func (h *handler) HandleGetCar(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	car, err := h.query.GetCar(h.ctx, id)
+	car, err := h.query.GetCar(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -89,7 +89,7 @@ func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
 		Status:        body.Status,
 	}
 
-	car, err := h.query.InsertCar(h.ctx, params)
+	car, err := h.query.InsertCar(r.Context(), params)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -140,7 +140,7 @@ func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
 		OwnerID:       ownerID,
 	}
 
-	car, err := h.query.UpdateCar(h.ctx, payload)
+	car, err := h.query.UpdateCar(r.Context(), payload)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")

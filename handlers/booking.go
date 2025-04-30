@@ -17,7 +17,7 @@ func (h *handler) HandleGetAllBookingsForOwner(w http.ResponseWriter, r *http.Re
 		utils.SendResponse(w, "error", http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	bookings, err := h.query.ListBookingsForOwner(h.ctx, ownerID)
+	bookings, err := h.query.ListBookingsForOwner(r.Context(), ownerID)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch all bookings")
@@ -43,7 +43,7 @@ func (h *handler) HandleGetAllBookingsForRenter(w http.ResponseWriter, r *http.R
 		utils.SendResponse(w, "error", http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	bookings, err := h.query.ListBookingsForRenter(h.ctx, renterID)
+	bookings, err := h.query.ListBookingsForRenter(r.Context(), renterID)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch all bookings")
@@ -79,7 +79,7 @@ func (h *handler) HandleGetBookingByOwner(w http.ResponseWriter, r *http.Request
 		ID:      id,
 		OwnerID: ownerID,
 	}
-	booking, err := h.query.GetBookingForOwner(h.ctx, params)
+	booking, err := h.query.GetBookingForOwner(r.Context(), params)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -109,7 +109,7 @@ func (h *handler) HandleGetBookingByRenter(w http.ResponseWriter, r *http.Reques
 		ID:       id,
 		RenterID: renterID,
 	}
-	booking, err := h.query.GetBookingForRenter(h.ctx, params)
+	booking, err := h.query.GetBookingForRenter(r.Context(), params)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -136,7 +136,7 @@ func (h *handler) HandleInsertBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body.RenterID = renterID
-	booking, err := h.query.InsertBooking(h.ctx, body)
+	booking, err := h.query.InsertBooking(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -171,7 +171,7 @@ func (h *handler) HandleUpdateBookingByOwner(w http.ResponseWriter, r *http.Requ
 	}
 	body.ID = id
 	body.OwnerID = ownerID
-	booking, err := h.query.UpdateBookingForOwner(h.ctx, body)
+	booking, err := h.query.UpdateBookingForOwner(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -206,7 +206,7 @@ func (h *handler) HandleUpdateBookingByRenter(w http.ResponseWriter, r *http.Req
 	}
 	body.ID = id
 	body.RenterID = renterID
-	booking, err := h.query.UpdateBookingForRenter(h.ctx, body)
+	booking, err := h.query.UpdateBookingForRenter(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")

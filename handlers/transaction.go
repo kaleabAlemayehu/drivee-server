@@ -10,7 +10,7 @@ import (
 )
 
 func (h *handler) HandleGetAllTransactions(w http.ResponseWriter, r *http.Request) {
-	transactions, err := h.query.ListTransactions(h.ctx)
+	transactions, err := h.query.ListTransactions(r.Context())
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -30,7 +30,7 @@ func (h *handler) HandleGetTransaction(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	transaction, err := h.query.GetTransaction(h.ctx, id)
+	transaction, err := h.query.GetTransaction(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "bad request", http.StatusBadRequest)
@@ -51,7 +51,7 @@ func (h *handler) HandleCreateTransaction(w http.ResponseWriter, r *http.Request
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	transaction, err := h.query.InsertTransaction(h.ctx, body)
+	transaction, err := h.query.InsertTransaction(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -78,7 +78,7 @@ func (h *handler) HandleUpdateTransaction(w http.ResponseWriter, r *http.Request
 		return
 	}
 	body.ID = id
-	transaction, err := h.query.UpdateTransaction(h.ctx, body)
+	transaction, err := h.query.UpdateTransaction(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "internal server error", http.StatusInternalServerError)

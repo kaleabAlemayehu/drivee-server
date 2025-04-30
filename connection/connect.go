@@ -4,17 +4,14 @@ import (
 	"context"
 	"log"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func DBConnect(connectionString string) (context.Context, *pgx.Conn) {
-	ctx := context.Background()
-
-	conn, err := pgx.Connect(ctx, connectionString)
+func DBConnect(connectionString string) *pgxpool.Pool {
+	pool, err := pgxpool.New(context.Background(), connectionString)
 	if err != nil {
 		log.Fatalf("unable to connect database: %s", connectionString)
 	}
 	log.Printf("database connected succesfully: %s", connectionString)
-	return ctx, conn
-
+	return pool
 }

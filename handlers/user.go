@@ -13,7 +13,7 @@ import (
 )
 
 func (h *handler) HandleGetAllUser(w http.ResponseWriter, r *http.Request) {
-	owners, err := h.query.ListUser(h.ctx)
+	owners, err := h.query.ListUser(r.Context())
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch user list")
@@ -33,7 +33,7 @@ func (h *handler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	owner, err := h.query.GetUser(h.ctx, id)
+	owner, err := h.query.GetUser(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch owner")
@@ -64,7 +64,7 @@ func (h *handler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	params.ID = id
-	res, err := h.query.UpdateUser(h.ctx, params)
+	res, err := h.query.UpdateUser(r.Context(), params)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request body")

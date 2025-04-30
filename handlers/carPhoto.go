@@ -17,7 +17,7 @@ func (h *handler) HandleGetAllCarPhotos(w http.ResponseWriter, r *http.Request) 
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	photos, err := h.query.GetCarPhotos(h.ctx, id)
+	photos, err := h.query.GetCarPhotos(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -39,7 +39,7 @@ func (h *handler) HandleGetCarPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, err := h.query.GetCarPhoto(h.ctx, id)
+	photo, err := h.query.GetCarPhoto(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -60,7 +60,7 @@ func (h *handler) HandleInsertCarPhoto(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	photo, err := h.query.InsertCarPhoto(h.ctx, body)
+	photo, err := h.query.InsertCarPhoto(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -94,7 +94,7 @@ func (h *handler) HandleUpdateCarPhoto(w http.ResponseWriter, r *http.Request) {
 	}
 	body.ID = id
 	body.OwnerID = ownerID
-	photo, err := h.query.UpdateCarPhoto(h.ctx, body)
+	photo, err := h.query.UpdateCarPhoto(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")

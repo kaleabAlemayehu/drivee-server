@@ -17,7 +17,7 @@ func (h *handler) HandleGetAllReviews(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	reviews, err := h.query.ListReviews(h.ctx, id)
+	reviews, err := h.query.ListReviews(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -42,7 +42,7 @@ func (h *handler) HandleGetReview(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	review, err := h.query.GetReview(h.ctx, id)
+	review, err := h.query.GetReview(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -70,7 +70,7 @@ func (h *handler) HandleInsertReview(w http.ResponseWriter, r *http.Request) {
 	}
 	body.ReviewerID = reviewerID
 
-	review, err := h.query.InsertReview(h.ctx, body)
+	review, err := h.query.InsertReview(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
@@ -105,7 +105,7 @@ func (h *handler) HandleUpdateReview(w http.ResponseWriter, r *http.Request) {
 	}
 	body.ID = id
 	body.ReviewerID = reviewerID
-	review, err := h.query.UpdateReview(h.ctx, body)
+	review, err := h.query.UpdateReview(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")

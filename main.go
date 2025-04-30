@@ -24,9 +24,10 @@ func main() {
 		port = 9999
 		log.Printf("port is not specified\n running on default port :%d \n", port)
 	}
-	ctx, conn := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
+	pool := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
+	defer pool.Close()
 
-	handler := handlers.NewHandler(ctx, conn)
+	handler := handlers.NewHandler(pool)
 	secure := middleware.CreateStack(
 		middleware.Auth,
 	)
