@@ -8,7 +8,6 @@ package model
 import (
 	"context"
 
-	go_postgis "github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -205,7 +204,7 @@ func (q *Queries) ListBookingsForRenter(ctx context.Context, renterID uuid.UUID)
 }
 
 const updateBookingForOwner = `-- name: UpdateBookingForOwner :one
-UPDATE bookings b SET status = $3  FROM cars c WHERE b.car_id = c.id AND c.owner_id = $2 AND b.id = $1 RETURNING c.id, owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, c.status, c.created_at, c.updated_at, b.id, car_id, renter_id, start_time, end_time, total_price, b.status, b.created_at, b.updated_at
+UPDATE bookings b SET status = $3  FROM cars c WHERE b.car_id = c.id AND c.owner_id = $2 AND b.id = $1 RETURNING b.id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status, b.created_at, b.updated_at
 `
 
 type UpdateBookingForOwnerParams struct {
@@ -214,61 +213,19 @@ type UpdateBookingForOwnerParams struct {
 	Status  BookingStatus `json:"status"`
 }
 
-type UpdateBookingForOwnerRow struct {
-	ID           uuid.UUID         `json:"id"`
-	OwnerID      uuid.UUID         `json:"owner_id"`
-	Make         string            `json:"make"`
-	Model        string            `json:"model"`
-	Year         string            `json:"year"`
-	LicensePlate string            `json:"license_plate"`
-	VinNumber    string            `json:"vin_number"`
-	Transmission Transmission      `json:"transmission"`
-	FuelType     FuelType          `json:"fuel_type"`
-	Mileage      int32             `json:"mileage"`
-	Location     go_postgis.PointS `json:"location"`
-	PricePerHour pgtype.Numeric    `json:"price_per_hour"`
-	Status       StatusType        `json:"status"`
-	CreatedAt    pgtype.Timestamp  `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp  `json:"updated_at"`
-	ID_2         uuid.UUID         `json:"id_2"`
-	CarID        uuid.UUID         `json:"car_id"`
-	RenterID     uuid.UUID         `json:"renter_id"`
-	StartTime    pgtype.Timestamp  `json:"start_time"`
-	EndTime      pgtype.Timestamp  `json:"end_time"`
-	TotalPrice   pgtype.Numeric    `json:"total_price"`
-	Status_2     BookingStatus     `json:"status_2"`
-	CreatedAt_2  pgtype.Timestamp  `json:"created_at_2"`
-	UpdatedAt_2  pgtype.Timestamp  `json:"updated_at_2"`
-}
-
-func (q *Queries) UpdateBookingForOwner(ctx context.Context, arg UpdateBookingForOwnerParams) (UpdateBookingForOwnerRow, error) {
+func (q *Queries) UpdateBookingForOwner(ctx context.Context, arg UpdateBookingForOwnerParams) (Booking, error) {
 	row := q.db.QueryRow(ctx, updateBookingForOwner, arg.ID, arg.OwnerID, arg.Status)
-	var i UpdateBookingForOwnerRow
+	var i Booking
 	err := row.Scan(
 		&i.ID,
-		&i.OwnerID,
-		&i.Make,
-		&i.Model,
-		&i.Year,
-		&i.LicensePlate,
-		&i.VinNumber,
-		&i.Transmission,
-		&i.FuelType,
-		&i.Mileage,
-		&i.Location,
-		&i.PricePerHour,
-		&i.Status,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.ID_2,
 		&i.CarID,
 		&i.RenterID,
 		&i.StartTime,
 		&i.EndTime,
 		&i.TotalPrice,
-		&i.Status_2,
-		&i.CreatedAt_2,
-		&i.UpdatedAt_2,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
