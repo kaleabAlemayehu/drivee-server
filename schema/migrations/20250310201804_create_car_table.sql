@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS cars (
   owner_id UUID,
 -- TODO: (fix this on production) REFERENCES users(id) NOT NULL,
   thumbnail_picture TEXT NOT NULL,
+  description TEXT NOT NULL,
   make TEXT NOT NULL,
   model TEXT NOT NULL,
   year TEXT NOT NULL,
