@@ -15,7 +15,7 @@ import (
 const getBookingForOwner = `-- name: GetBookingForOwner :one
 SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status 
 	FROM bookings b JOIN cars c ON b.car_id = c.id
-	JOIN users u ON b.renter_id = u.id WHERE c.owner_id = $2 AND b.id=$1
+	WHERE c.owner_id = $2 AND b.id=$1
 `
 
 type GetBookingForOwnerParams struct {
@@ -118,9 +118,7 @@ func (q *Queries) InsertBooking(ctx context.Context, arg InsertBookingParams) (B
 }
 
 const listBookingsForOwner = `-- name: ListBookingsForOwner :many
-SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status 
-	FROM bookings b JOIN cars c ON b.car_id = c.id
-	JOIN users u ON b.renter_id = u.id WHERE c.owner_id = $1
+SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status FROM bookings b JOIN cars c ON b.car_id = c.id WHERE c.owner_id = $1
 `
 
 type ListBookingsForOwnerRow struct {

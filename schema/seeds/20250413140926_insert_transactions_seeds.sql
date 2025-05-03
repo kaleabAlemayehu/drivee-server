@@ -8,5 +8,5 @@ INSERT INTO transactions(renter_id, owner_id, booking_id, amount, fee, payout_st
 
 -- +goose Down
 -- +goose StatementBegin
-TRUNCATE TABLE transactions CASCADE;
+ -- TRUNCATE TABLE transactions CASCADE;
 -- +goose StatementEnd
