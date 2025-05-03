@@ -27,6 +27,17 @@ func main() {
 	pool := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
 	defer pool.Close()
 
+	c := cors.New(cors.Options{
+		// AllowedOrigins: []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodHead},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+		Debug:            true,
+	})
+
 	handler := handlers.NewHandler(pool)
 	secure := middleware.CreateStack(
 		middleware.Auth,
@@ -36,7 +47,7 @@ func main() {
 		middleware.Auth,
 	)
 	free := middleware.CreateStack(
-		cors.Default().Handler,
+		c.Handler,
 		middleware.Logger,
 	)
 
@@ -57,8 +68,8 @@ func main() {
 
 	// INFO:
 	bookingRouter := http.NewServeMux()
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/", http.MethodGet), handler.HandleGetAllBookingsForOwner)
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/", http.MethodGet), handler.HandleGetAllBookingsForRenter)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner", http.MethodGet), handler.HandleGetAllBookingsForOwner)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter", http.MethodGet), handler.HandleGetAllBookingsForRenter)
 
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/{id}", http.MethodGet), handler.HandleGetBookingByOwner)
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/{id}", http.MethodGet), handler.HandleGetBookingByRenter)
