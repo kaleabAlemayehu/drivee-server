@@ -101,3 +101,63 @@ func (h *handler) HandleGetAllBookingsForOwner(w http.ResponseWriter, r *http.Re
 		return
 	}
 }
+
+func (h *handler) HandleGetAllCarsByOwner(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	cars, err := h.query.ListCarsForOwner(r.Context(), ownerID)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch all cars")
+		return
+	}
+	if cars == nil {
+		utils.SendResponse(w, "success", http.StatusNoContent, "[]")
+		log.Println("there is not cars to list")
+		return
+	}
+	if err = utils.SendResponse(w, "success", http.StatusOK, cars); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send cars data")
+		return
+	}
+}
+
+func (h *handler) HandleGetCarByOwner(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	carId, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	var params = model.GetCarForOwnerParams{
+		ID:      carId,
+		OwnerID: ownerID,
+	}
+	car, err := h.query.GetCarForOwner(r.Context(), params)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch a car")
+		return
+	}
+	if car == nil {
+		utils.SendResponse(w, "success", http.StatusNoContent, "[]")
+		log.Println("there is no car with this id")
+		return
+	}
+	if err = utils.SendResponse(w, "success", http.StatusOK, car); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send the car data")
+		return
+	}
+}

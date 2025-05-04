@@ -8,6 +8,7 @@ package model
 import (
 	"context"
 
+	go_postgis "github.com/cridenour/go-postgis"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -48,6 +49,69 @@ func (q *Queries) GetBookingForOwner(ctx context.Context, arg GetBookingForOwner
 	return i, err
 }
 
+const getCarForOwner = `-- name: GetCarForOwner :many
+SELECT id, owner_id, thumbnail_picture,make, description, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status FROM cars WHERE id = $1 AND owner_id=$2 LIMIT 1
+`
+
+type GetCarForOwnerParams struct {
+	ID      uuid.UUID `json:"id"`
+	OwnerID uuid.UUID `json:"owner_id"`
+}
+
+type GetCarForOwnerRow struct {
+	ID               uuid.UUID         `json:"id"`
+	OwnerID          uuid.UUID         `json:"owner_id"`
+	ThumbnailPicture string            `json:"thumbnail_picture"`
+	Make             string            `json:"make"`
+	Description      string            `json:"description"`
+	Model            string            `json:"model"`
+	Year             string            `json:"year"`
+	LicensePlate     string            `json:"license_plate"`
+	VinNumber        string            `json:"vin_number"`
+	Transmission     Transmission      `json:"transmission"`
+	FuelType         FuelType          `json:"fuel_type"`
+	Mileage          int32             `json:"mileage"`
+	Location         go_postgis.PointS `json:"location"`
+	PricePerHour     pgtype.Numeric    `json:"price_per_hour"`
+	Status           StatusType        `json:"status"`
+}
+
+func (q *Queries) GetCarForOwner(ctx context.Context, arg GetCarForOwnerParams) ([]GetCarForOwnerRow, error) {
+	rows, err := q.db.Query(ctx, getCarForOwner, arg.ID, arg.OwnerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCarForOwnerRow
+	for rows.Next() {
+		var i GetCarForOwnerRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerID,
+			&i.ThumbnailPicture,
+			&i.Make,
+			&i.Description,
+			&i.Model,
+			&i.Year,
+			&i.LicensePlate,
+			&i.VinNumber,
+			&i.Transmission,
+			&i.FuelType,
+			&i.Mileage,
+			&i.Location,
+			&i.PricePerHour,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBookingsForOwner = `-- name: ListBookingsForOwner :many
 SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status FROM bookings b JOIN cars c ON b.car_id = c.id WHERE c.owner_id = $1
 `
@@ -78,6 +142,64 @@ func (q *Queries) ListBookingsForOwner(ctx context.Context, ownerID uuid.UUID) (
 			&i.StartTime,
 			&i.EndTime,
 			&i.TotalPrice,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCarsForOwner = `-- name: ListCarsForOwner :many
+SELECT id, owner_id, thumbnail_picture, description, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars WHERE owner_id = $1 ORDER BY year
+`
+
+type ListCarsForOwnerRow struct {
+	ID               uuid.UUID         `json:"id"`
+	OwnerID          uuid.UUID         `json:"owner_id"`
+	ThumbnailPicture string            `json:"thumbnail_picture"`
+	Description      string            `json:"description"`
+	Make             string            `json:"make"`
+	Model            string            `json:"model"`
+	Year             string            `json:"year"`
+	LicensePlate     string            `json:"license_plate"`
+	VinNumber        string            `json:"vin_number"`
+	Transmission     Transmission      `json:"transmission"`
+	FuelType         FuelType          `json:"fuel_type"`
+	Mileage          int32             `json:"mileage"`
+	Location         go_postgis.PointS `json:"location"`
+	PricePerHour     pgtype.Numeric    `json:"price_per_hour"`
+	Status           StatusType        `json:"status"`
+}
+
+func (q *Queries) ListCarsForOwner(ctx context.Context, ownerID uuid.UUID) ([]ListCarsForOwnerRow, error) {
+	rows, err := q.db.Query(ctx, listCarsForOwner, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCarsForOwnerRow
+	for rows.Next() {
+		var i ListCarsForOwnerRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerID,
+			&i.ThumbnailPicture,
+			&i.Description,
+			&i.Make,
+			&i.Model,
+			&i.Year,
+			&i.LicensePlate,
+			&i.VinNumber,
+			&i.Transmission,
+			&i.FuelType,
+			&i.Mileage,
+			&i.Location,
+			&i.PricePerHour,
 			&i.Status,
 		); err != nil {
 			return nil, err
