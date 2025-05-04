@@ -68,14 +68,16 @@ func main() {
 
 	// INFO:
 	bookingRouter := http.NewServeMux()
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner", http.MethodGet), handler.HandleGetAllBookingsForOwner)
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter", http.MethodGet), handler.HandleGetAllBookingsForRenter)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodGet), handler.HandleGetAllBookingsForRenter)
 
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/{id}", http.MethodGet), handler.HandleGetBookingByOwner)
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/{id}", http.MethodGet), handler.HandleGetBookingByRenter)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodGet), handler.HandleGetBookingByRenter)
 	bookingRouter.HandleFunc(fmt.Sprintf("%s /", http.MethodPost), handler.HandleInsertBooking)
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /owner/{id}", http.MethodPatch), handler.HandleUpdateBookingByOwner)
-	bookingRouter.HandleFunc(fmt.Sprintf("%s /renter/{id}", http.MethodPatch), handler.HandleUpdateBookingByRenter)
+	bookingRouter.HandleFunc(fmt.Sprintf("%s /{id}", http.MethodPatch), handler.HandleUpdateBookingByRenter)
+
+	ownerRouter := http.NewServeMux()
+	ownerRouter.HandleFunc(fmt.Sprintf("%s /bookings", http.MethodGet), handler.HandleGetAllBookingsForOwner)
+	ownerRouter.HandleFunc(fmt.Sprintf("%s /bookings/{id}", http.MethodGet), handler.HandleGetBookingByOwner)
+	ownerRouter.HandleFunc(fmt.Sprintf("%s /bookings/{id}/status", http.MethodPatch), handler.HandleUpdateBookingByOwner)
 
 	// INFO:
 	paymentRouter := http.NewServeMux()
@@ -114,6 +116,7 @@ func main() {
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", secure(userRouter)))
 	mux.Handle("/api/cars/", http.StripPrefix("/api/cars", carRouter))
 	mux.Handle("/api/bookings/", http.StripPrefix("/api/bookings", secure(bookingRouter)))
+	mux.Handle("/api/owner/", http.StripPrefix("/api/owner", secure(ownerRouter)))
 	mux.Handle("/api/payments/", http.StripPrefix("/api/payments", secure(paymentRouter)))
 	mux.Handle("/api/reviews/", http.StripPrefix("/api/reviews", secure(reviewRouter)))
 	mux.Handle("/api/carphotos/", http.StripPrefix("/api/carphotos", carPhotoRouter))
