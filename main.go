@@ -35,7 +35,7 @@ func main() {
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
-		Debug:            true,
+		// Debug:            true,
 	})
 
 	handler := handlers.NewHandler(pool)
