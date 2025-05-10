@@ -53,17 +53,23 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error)
 }
 
 const insertUser = `-- name: InsertUser :one
-INSERT INTO users (first_name, email, password) VALUES ( $1, $2, $3) RETURNING id, first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
+INSERT INTO users (first_name, email, password, profile_picture) VALUES ( $1, $2, $3, $4) RETURNING id, first_name, middle_name, last_name, email, profile_picture, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
 `
 
 type InsertUserParams struct {
-	FirstName string `json:"first_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
+	FirstName      string `json:"first_name"`
+	Email          string `json:"email"`
+	Password       string `json:"password"`
+	ProfilePicture string `json:"profile_picture"`
 }
 
 func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, insertUser, arg.FirstName, arg.Email, arg.Password)
+	row := q.db.QueryRow(ctx, insertUser,
+		arg.FirstName,
+		arg.Email,
+		arg.Password,
+		arg.ProfilePicture,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -71,6 +77,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, e
 		&i.MiddleName,
 		&i.LastName,
 		&i.Email,
+		&i.ProfilePicture,
 		&i.Password,
 		&i.DriverLicense,
 		&i.PhoneNumber,
@@ -137,7 +144,7 @@ func (q *Queries) ListUser(ctx context.Context) ([]ListUserRow, error) {
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9, driver_license= $10, is_owner=$11, is_renter=$12 WHERE  id = $1
-RETURNING id, first_name, middle_name, last_name, email, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
+RETURNING id, first_name, middle_name, last_name, email, profile_picture, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
 `
 
 type UpdateUserParams struct {
@@ -177,6 +184,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.MiddleName,
 		&i.LastName,
 		&i.Email,
+		&i.ProfilePicture,
 		&i.Password,
 		&i.DriverLicense,
 		&i.PhoneNumber,

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   middle_name TEXT,
   last_name TEXT ,
   email TEXT NOT NULL UNIQUE,
+  profile_picture TEXT NOT NULL,
   password TEXT NOT NULL,
   driver_license  TEXT,
   phone_number TEXT,

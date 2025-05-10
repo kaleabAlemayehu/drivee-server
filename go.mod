@@ -1,6 +1,6 @@
 module github.com/kaleabAlemayehu/drivee-server
 
-go 1.23.4
+go 1.24.1
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/joho/godotenv v1.5.1
+	github.com/kaleabAlemayehu/identicon v0.0.0-20250509170734-120c7ce47d89
 	github.com/rs/cors v1.11.1
 )
 

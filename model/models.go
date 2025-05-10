@@ -395,18 +395,19 @@ type Transaction struct {
 }
 
 type User struct {
-	ID            uuid.UUID        `json:"id"`
-	FirstName     string           `json:"first_name"`
-	MiddleName    pgtype.Text      `json:"middle_name"`
-	LastName      pgtype.Text      `json:"last_name"`
-	Email         string           `json:"email"`
-	Password      string           `json:"password"`
-	DriverLicense pgtype.Text      `json:"driver_license"`
-	PhoneNumber   pgtype.Text      `json:"phone_number"`
-	AccountNumber pgtype.Text      `json:"account_number"`
-	BankName      pgtype.Text      `json:"bank_name"`
-	IsOwner       pgtype.Bool      `json:"is_owner"`
-	IsRenter      pgtype.Bool      `json:"is_renter"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
-	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+	ID             uuid.UUID        `json:"id"`
+	FirstName      string           `json:"first_name"`
+	MiddleName     pgtype.Text      `json:"middle_name"`
+	LastName       pgtype.Text      `json:"last_name"`
+	Email          string           `json:"email"`
+	ProfilePicture string           `json:"profile_picture"`
+	Password       string           `json:"password"`
+	DriverLicense  pgtype.Text      `json:"driver_license"`
+	PhoneNumber    pgtype.Text      `json:"phone_number"`
+	AccountNumber  pgtype.Text      `json:"account_number"`
+	BankName       pgtype.Text      `json:"bank_name"`
+	IsOwner        pgtype.Bool      `json:"is_owner"`
+	IsRenter       pgtype.Bool      `json:"is_renter"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	UpdatedAt      pgtype.Timestamp `json:"updated_at"`
 }
