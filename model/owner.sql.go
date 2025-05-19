@@ -14,9 +14,7 @@ import (
 )
 
 const getBookingForOwner = `-- name: GetBookingForOwner :one
-SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status 
-	FROM bookings b JOIN cars c ON b.car_id = c.id
-	WHERE c.owner_id = $2 AND b.id=$1
+ SELECT b.id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status FROM bookings b JOIN cars c ON b.car_id = c.id WHERE c.owner_id = $2 AND b.id=$1
 `
 
 type GetBookingForOwnerParams struct {
@@ -25,7 +23,7 @@ type GetBookingForOwnerParams struct {
 }
 
 type GetBookingForOwnerRow struct {
-	BookingID  uuid.UUID        `json:"booking_id"`
+	ID         uuid.UUID        `json:"id"`
 	CarID      uuid.UUID        `json:"car_id"`
 	RenterID   uuid.UUID        `json:"renter_id"`
 	StartTime  pgtype.Timestamp `json:"start_time"`
@@ -38,7 +36,7 @@ func (q *Queries) GetBookingForOwner(ctx context.Context, arg GetBookingForOwner
 	row := q.db.QueryRow(ctx, getBookingForOwner, arg.ID, arg.OwnerID)
 	var i GetBookingForOwnerRow
 	err := row.Scan(
-		&i.BookingID,
+		&i.ID,
 		&i.CarID,
 		&i.RenterID,
 		&i.StartTime,
@@ -100,48 +98,6 @@ func (q *Queries) GetCarForOwner(ctx context.Context, arg GetCarForOwnerParams) 
 			&i.Mileage,
 			&i.Location,
 			&i.PricePerHour,
-			&i.Status,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listBookingsForOwner = `-- name: ListBookingsForOwner :many
-SELECT b.id AS booking_id, b.car_id, b.renter_id, b.start_time, b.end_time, b.total_price, b.status FROM bookings b JOIN cars c ON b.car_id = c.id WHERE c.owner_id = $1
-`
-
-type ListBookingsForOwnerRow struct {
-	BookingID  uuid.UUID        `json:"booking_id"`
-	CarID      uuid.UUID        `json:"car_id"`
-	RenterID   uuid.UUID        `json:"renter_id"`
-	StartTime  pgtype.Timestamp `json:"start_time"`
-	EndTime    pgtype.Timestamp `json:"end_time"`
-	TotalPrice pgtype.Numeric   `json:"total_price"`
-	Status     BookingStatus    `json:"status"`
-}
-
-func (q *Queries) ListBookingsForOwner(ctx context.Context, ownerID uuid.UUID) ([]ListBookingsForOwnerRow, error) {
-	rows, err := q.db.Query(ctx, listBookingsForOwner, ownerID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListBookingsForOwnerRow
-	for rows.Next() {
-		var i ListBookingsForOwnerRow
-		if err := rows.Scan(
-			&i.BookingID,
-			&i.CarID,
-			&i.RenterID,
-			&i.StartTime,
-			&i.EndTime,
-			&i.TotalPrice,
 			&i.Status,
 		); err != nil {
 			return nil, err

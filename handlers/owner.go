@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	// "github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaleabAlemayehu/drivee-server/model"
 	"github.com/kaleabAlemayehu/drivee-server/utils"
 )
@@ -87,41 +87,33 @@ func (h *handler) HandleGetAllBookingsForOwner(w http.ResponseWriter, r *http.Re
 
 	queries := r.URL.Query()
 	params := model.ListBookingsForOwnerParams{}
+	params.OwnerID = ownerID
 	if statusStr := queries.Get("status"); statusStr != "" {
-		params.StatusFilter = model.NullBookingStatus{
-			Valid:         true,
-			BookingStatus: model.BookingStatus(statusStr),
-		}
-
+		params.StatusFilter = &statusStr
 	}
 	if carIDStr := queries.Get("carid"); carIDStr != "" {
-		params.CarIDFilter, err = uuid.Parse(carIDStr)
+		carid, err := uuid.Parse(carIDStr)
 		if err != nil {
 			log.Println(err.Error())
 			utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 			return
 		}
+		params.CarIDFilter = utils.ParseNullableUUID(carid)
 	}
 
 	if RenterIDStr := queries.Get("renterid"); RenterIDStr != "" {
-		params.RenterIDFilter, err = uuid.Parse(RenterIDStr)
+		rid, err := uuid.Parse(RenterIDStr)
 		if err != nil {
 			log.Println(err.Error())
 			utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 			return
 		}
+		params.RenterIDFilter = utils.ParseNullableUUID(rid)
 	}
-	log.Printf("Attempting to fetch bookings for OwnerID (from context 'userID'): %s", ownerID.String())
-	params.OwnerID = ownerID
-	log.Printf("DEBUG: ListBookingsForOwnerParams before query:")
-	log.Printf("  OwnerID: %s (Valid: true, assuming it's not a pointer type)", params.OwnerID.String()) // Assuming OwnerID is not pgtype
-	log.Printf("  StatusFilter: %+v", params.StatusFilter)                                               // Check its Valid field
-	log.Printf("  CarIDFilter: %+v", params.CarIDFilter)                                                 // Check its Valid field
-	log.Printf("  RenterIDFilter: %+v", params.RenterIDFilter)
 
 	bookings, err := h.query.ListBookingsForOwner(r.Context(), params)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("fetch error ", err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch all bookings")
 		return
 	}

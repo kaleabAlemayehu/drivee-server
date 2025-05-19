@@ -62,7 +62,7 @@ END $$;
 
 DO $$
 DECLARE
-    specific_owner_id UUID := '4441605e-87e3-4916-adc0-3f79a2d29d29';
+    specific_owner_id UUID := 'f8e5eb15-5991-41a5-ae50-68005a77d9c7';
 BEGIN
     -- Insert 10 more Cars for the specified owner
     INSERT INTO cars (id, owner_id, thumbnail_picture, description, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status) VALUES
