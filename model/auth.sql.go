@@ -13,16 +13,17 @@ import (
 )
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, middle_name, last_name, email, password FROM users WHERE email = $1 LIMIT 1
+SELECT id, first_name, middle_name, last_name, email, password, profile_picture FROM users WHERE email = $1 LIMIT 1
 `
 
 type GetUserByEmailRow struct {
-	ID         uuid.UUID   `json:"id"`
-	FirstName  string      `json:"first_name"`
-	MiddleName pgtype.Text `json:"middle_name"`
-	LastName   pgtype.Text `json:"last_name"`
-	Email      string      `json:"email"`
-	Password   string      `json:"password"`
+	ID             uuid.UUID   `json:"id"`
+	FirstName      string      `json:"first_name"`
+	MiddleName     pgtype.Text `json:"middle_name"`
+	LastName       pgtype.Text `json:"last_name"`
+	Email          string      `json:"email"`
+	Password       string      `json:"password"`
+	ProfilePicture string      `json:"profile_picture"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
@@ -35,6 +36,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.LastName,
 		&i.Email,
 		&i.Password,
+		&i.ProfilePicture,
 	)
 	return i, err
 }

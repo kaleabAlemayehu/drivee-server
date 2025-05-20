@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -17,12 +18,13 @@ import (
 )
 
 type authResponse struct {
-	ID         uuid.UUID `json:"id"`
-	Email      string    `json:"email"`
-	FirstName  string    `json:"first_name"`
-	MiddleName string    `json:"middle_name"`
-	LastName   string    `json:"last_name"`
-	Token      string    `json:"token"`
+	ID             uuid.UUID `json:"id"`
+	Email          string    `json:"email"`
+	FirstName      string    `json:"first_name"`
+	MiddleName     string    `json:"middle_name"`
+	LastName       string    `json:"last_name"`
+	ProfilePicture string    `json:"profile_picture"`
+	Token          string    `json:"token"`
 }
 
 type loginInput struct {
@@ -41,12 +43,16 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	hashedPass, err := argon.CreateHash(params.Password, argon.DefaultParams)
 	if err != nil {
 		log.Println(err.Error())
-		utils.SendResponse(w, "error", http.StatusBadRequest, "internal server error")
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
 		return
 	}
 	img := identicon.New7X7().Render([]byte(fmt.Sprintf(params.Email, params.FirstName)))
-
-	profPic := utils.Upload(img)
+	profPic, err := utils.Upload(img, fmt.Sprintf("%s%s", params.FirstName, rand.Text()))
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "internal server error")
+		return
+	}
 
 	// insert into the table
 	user, err := h.query.InsertUser(r.Context(), model.InsertUserParams{
@@ -77,11 +83,12 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var res authResponse = authResponse{
-		ID:         user.ID,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName.String,
-		Token:      token,
+		ID:             user.ID,
+		Email:          user.Email,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName.String,
+		ProfilePicture: user.ProfilePicture,
+		Token:          token,
 	}
 
 	if err := utils.SendResponse(w, "success", http.StatusCreated, res); err != nil {
@@ -135,11 +142,12 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var res authResponse = authResponse{
-		ID:         user.ID,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName.String,
-		Token:      token,
+		ID:             user.ID,
+		Email:          user.Email,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName.String,
+		Token:          token,
+		ProfilePicture: user.ProfilePicture,
 	}
 
 	if err := utils.SendResponse(w, "success", int(http.StatusOK), res); err != nil {

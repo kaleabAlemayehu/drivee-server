@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	// "github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaleabAlemayehu/drivee-server/model"
 	"github.com/kaleabAlemayehu/drivee-server/utils"
 )

@@ -13,23 +13,24 @@ import (
 )
 
 const getUser = `-- name: GetUser :one
-SELECT id, first_name, middle_name, last_name, email, password, driver_license, is_owner, is_renter, phone_number, account_number, bank_name FROM users
+SELECT id, first_name, middle_name, last_name, email, password, driver_license, is_owner, is_renter, phone_number, account_number, bank_name, profile_picture  FROM users
 WHERE id = $1 LIMIT 1
 `
 
 type GetUserRow struct {
-	ID            uuid.UUID   `json:"id"`
-	FirstName     string      `json:"first_name"`
-	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      pgtype.Text `json:"last_name"`
-	Email         string      `json:"email"`
-	Password      string      `json:"password"`
-	DriverLicense pgtype.Text `json:"driver_license"`
-	IsOwner       pgtype.Bool `json:"is_owner"`
-	IsRenter      pgtype.Bool `json:"is_renter"`
-	PhoneNumber   pgtype.Text `json:"phone_number"`
-	AccountNumber pgtype.Text `json:"account_number"`
-	BankName      pgtype.Text `json:"bank_name"`
+	ID             uuid.UUID   `json:"id"`
+	FirstName      string      `json:"first_name"`
+	MiddleName     pgtype.Text `json:"middle_name"`
+	LastName       pgtype.Text `json:"last_name"`
+	Email          string      `json:"email"`
+	Password       string      `json:"password"`
+	DriverLicense  pgtype.Text `json:"driver_license"`
+	IsOwner        pgtype.Bool `json:"is_owner"`
+	IsRenter       pgtype.Bool `json:"is_renter"`
+	PhoneNumber    pgtype.Text `json:"phone_number"`
+	AccountNumber  pgtype.Text `json:"account_number"`
+	BankName       pgtype.Text `json:"bank_name"`
+	ProfilePicture string      `json:"profile_picture"`
 }
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
@@ -48,6 +49,7 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error)
 		&i.PhoneNumber,
 		&i.AccountNumber,
 		&i.BankName,
+		&i.ProfilePicture,
 	)
 	return i, err
 }
@@ -92,22 +94,23 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, e
 }
 
 const listUser = `-- name: ListUser :many
-SELECT id, first_name, middle_name, last_name, email, driver_license, is_owner, is_renter, phone_number,account_number, bank_name FROM users
+SELECT id, first_name, middle_name, last_name, email, driver_license, is_owner, is_renter, phone_number,account_number, bank_name, profile_picture FROM users
 ORDER BY email
 `
 
 type ListUserRow struct {
-	ID            uuid.UUID   `json:"id"`
-	FirstName     string      `json:"first_name"`
-	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      pgtype.Text `json:"last_name"`
-	Email         string      `json:"email"`
-	DriverLicense pgtype.Text `json:"driver_license"`
-	IsOwner       pgtype.Bool `json:"is_owner"`
-	IsRenter      pgtype.Bool `json:"is_renter"`
-	PhoneNumber   pgtype.Text `json:"phone_number"`
-	AccountNumber pgtype.Text `json:"account_number"`
-	BankName      pgtype.Text `json:"bank_name"`
+	ID             uuid.UUID   `json:"id"`
+	FirstName      string      `json:"first_name"`
+	MiddleName     pgtype.Text `json:"middle_name"`
+	LastName       pgtype.Text `json:"last_name"`
+	Email          string      `json:"email"`
+	DriverLicense  pgtype.Text `json:"driver_license"`
+	IsOwner        pgtype.Bool `json:"is_owner"`
+	IsRenter       pgtype.Bool `json:"is_renter"`
+	PhoneNumber    pgtype.Text `json:"phone_number"`
+	AccountNumber  pgtype.Text `json:"account_number"`
+	BankName       pgtype.Text `json:"bank_name"`
+	ProfilePicture string      `json:"profile_picture"`
 }
 
 func (q *Queries) ListUser(ctx context.Context) ([]ListUserRow, error) {
@@ -131,6 +134,7 @@ func (q *Queries) ListUser(ctx context.Context) ([]ListUserRow, error) {
 			&i.PhoneNumber,
 			&i.AccountNumber,
 			&i.BankName,
+			&i.ProfilePicture,
 		); err != nil {
 			return nil, err
 		}
@@ -143,23 +147,24 @@ func (q *Queries) ListUser(ctx context.Context) ([]ListUserRow, error) {
 }
 
 const updateUser = `-- name: UpdateUser :one
-UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9, driver_license= $10, is_owner=$11, is_renter=$12 WHERE  id = $1
+UPDATE users SET first_name = $2, middle_name = $3, last_name = $4, email = $5, password = $6, phone_number = $7, account_number = $8, bank_name = $9, driver_license= $10, is_owner=$11, is_renter=$12 , profile_picture=$13 WHERE  id = $1
 RETURNING id, first_name, middle_name, last_name, email, profile_picture, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
 `
 
 type UpdateUserParams struct {
-	ID            uuid.UUID   `json:"id"`
-	FirstName     string      `json:"first_name"`
-	MiddleName    pgtype.Text `json:"middle_name"`
-	LastName      pgtype.Text `json:"last_name"`
-	Email         string      `json:"email"`
-	Password      string      `json:"password"`
-	PhoneNumber   pgtype.Text `json:"phone_number"`
-	AccountNumber pgtype.Text `json:"account_number"`
-	BankName      pgtype.Text `json:"bank_name"`
-	DriverLicense pgtype.Text `json:"driver_license"`
-	IsOwner       pgtype.Bool `json:"is_owner"`
-	IsRenter      pgtype.Bool `json:"is_renter"`
+	ID             uuid.UUID   `json:"id"`
+	FirstName      string      `json:"first_name"`
+	MiddleName     pgtype.Text `json:"middle_name"`
+	LastName       pgtype.Text `json:"last_name"`
+	Email          string      `json:"email"`
+	Password       string      `json:"password"`
+	PhoneNumber    pgtype.Text `json:"phone_number"`
+	AccountNumber  pgtype.Text `json:"account_number"`
+	BankName       pgtype.Text `json:"bank_name"`
+	DriverLicense  pgtype.Text `json:"driver_license"`
+	IsOwner        pgtype.Bool `json:"is_owner"`
+	IsRenter       pgtype.Bool `json:"is_renter"`
+	ProfilePicture string      `json:"profile_picture"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -176,6 +181,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.DriverLicense,
 		arg.IsOwner,
 		arg.IsRenter,
+		arg.ProfilePicture,
 	)
 	var i User
 	err := row.Scan(
