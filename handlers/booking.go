@@ -12,12 +12,22 @@ import (
 
 func (h *handler) HandleGetAllBookingsForRenter(w http.ResponseWriter, r *http.Request) {
 	renterID, err := uuid.Parse(r.Context().Value("userID").(string))
+	log.Println(renterID.String())
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	bookings, err := h.query.ListBookingsForRenter(r.Context(), renterID)
+	queries := r.URL.Query()
+	params := model.ListBookingsForRenterParams{}
+	params.RenterID = renterID
+	if statusStr := queries.Get("status"); statusStr != "" {
+		params.Status.BookingStatus = model.BookingStatus(statusStr)
+		params.Status.Valid = true
+	} else {
+		params.Status.Valid = false
+	}
+	bookings, err := h.query.ListBookingsForRenter(r.Context(), params)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch all bookings")

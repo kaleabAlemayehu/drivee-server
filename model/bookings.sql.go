@@ -82,8 +82,13 @@ func (q *Queries) InsertBooking(ctx context.Context, arg InsertBookingParams) (B
 }
 
 const listBookingsForRenter = `-- name: ListBookingsForRenter :many
-SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE renter_id=$1 ORDER BY start_time
+SELECT id, car_id, renter_id, start_time, end_time, total_price, status FROM bookings WHERE renter_id=$1 AND (status = $2 OR $2 IS NULL) ORDER BY start_time
 `
+
+type ListBookingsForRenterParams struct {
+	RenterID uuid.UUID         `json:"renter_id"`
+	Status   NullBookingStatus `json:"status"`
+}
 
 type ListBookingsForRenterRow struct {
 	ID         uuid.UUID        `json:"id"`
@@ -95,8 +100,8 @@ type ListBookingsForRenterRow struct {
 	Status     BookingStatus    `json:"status"`
 }
 
-func (q *Queries) ListBookingsForRenter(ctx context.Context, renterID uuid.UUID) ([]ListBookingsForRenterRow, error) {
-	rows, err := q.db.Query(ctx, listBookingsForRenter, renterID)
+func (q *Queries) ListBookingsForRenter(ctx context.Context, arg ListBookingsForRenterParams) ([]ListBookingsForRenterRow, error) {
+	rows, err := q.db.Query(ctx, listBookingsForRenter, arg.RenterID, arg.Status)
 	if err != nil {
 		return nil, err
 	}
