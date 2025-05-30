@@ -58,6 +58,17 @@ func (q *Queries) GetCar(ctx context.Context, id uuid.UUID) (GetCarRow, error) {
 	return i, err
 }
 
+const getCarsCount = `-- name: GetCarsCount :one
+SELECT COUNT(*) FROM cars
+`
+
+func (q *Queries) GetCarsCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getCarsCount)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const insertCar = `-- name: InsertCar :one
 INSERT INTO cars( owner_id, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, thumbnail_picture,description ) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($10, $11), 4326), $12, $13, $14 , $15) RETURNING id, owner_id, thumbnail_picture, description, make, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status, created_at, updated_at
 `
@@ -126,8 +137,7 @@ const listCars = `-- name: ListCars :many
 SELECT 
     id, owner_id, thumbnail_picture, description, make, model, year,
     license_plate, vin_number, transmission, fuel_type, mileage,
-    location, price_per_hour, status,
-    COUNT(*) OVER() as total_count
+    location, price_per_hour, status
 FROM cars 
 ORDER BY year, id
 LIMIT $1 OFFSET $2
@@ -154,7 +164,6 @@ type ListCarsRow struct {
 	Location         go_postgis.PointS `json:"location"`
 	PricePerHour     pgtype.Numeric    `json:"price_per_hour"`
 	Status           StatusType        `json:"status"`
-	TotalCount       int64             `json:"total_count"`
 }
 
 // TODO: will add pagenation using LIMIT and OFFSET
@@ -183,7 +192,6 @@ func (q *Queries) ListCars(ctx context.Context, arg ListCarsParams) ([]ListCarsR
 			&i.Location,
 			&i.PricePerHour,
 			&i.Status,
-			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}

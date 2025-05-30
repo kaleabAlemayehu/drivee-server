@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/kaleabAlemayehu/drivee-server/dto"
 	"github.com/kaleabAlemayehu/drivee-server/model"
 	"github.com/kaleabAlemayehu/drivee-server/utils"
 )
@@ -33,14 +34,22 @@ func (h *handler) HandleGetAllCars(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cars, err := h.query.ListCars(r.Context(), params)
-	log.Println("carvalues:", cars)
-
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch cars")
 		return
 	}
-	if err = utils.SendResponse(w, "success", http.StatusOK, cars); err != nil {
+
+	var response dto.CarResponse
+	response.Total, err = h.query.GetCarsCount(r.Context())
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch total car number")
+		return
+	}
+	response.Cars = cars
+
+	if err = utils.SendResponse(w, "success", http.StatusOK, response); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
