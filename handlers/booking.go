@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaleabAlemayehu/drivee-server/model"
 	"github.com/kaleabAlemayehu/drivee-server/utils"
 )
@@ -90,6 +91,16 @@ func (h *handler) HandleInsertBooking(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body.RenterID = renterID
+	randNum, err := utils.GenerateBookingNumber()
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to create booking")
+		return
+	}
+	body.BookingNo = pgtype.Numeric{
+		Int:   randNum,
+		Valid: true,
+	}
 	booking, err := h.query.InsertBooking(r.Context(), body)
 	if err != nil {
 		log.Println(err.Error())

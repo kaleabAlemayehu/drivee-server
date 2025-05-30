@@ -11,12 +11,12 @@
 -- Define some owner UUIDs (replace with actual user IDs later)
 DO $$
 DECLARE
-    owner1_id UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-    owner2_id UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
-    owner3_id UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13';
-    owner4_id UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14';
-    owner5_id UUID := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15';
-    owner6_id UUID := '4441605e-87e3-4916-adc0-3f79a2d29d29';
+    owner1_id UUID := '95ce777e-50a5-4138-b895-6b799070dd3b';
+    owner2_id UUID := '95ce777e-50a5-4138-b895-6b799070dd3b';
+    owner3_id UUID := '95ce777e-50a5-4138-b895-6b799070dd3b';
+    owner4_id UUID := '95ce777e-50a5-4138-b895-6b799070dd3b';
+    owner5_id UUID := '95ce777e-50a5-4138-b895-6b799070dd3b';
+    owner6_id UUID := '95ce777e-50a5-4138-b895-6b799070dd3b';
     owner7_id UUID := '4441605e-87e3-4916-adc0-3f79a2d29d29';
     owner8_id UUID := '4441605e-87e3-4916-adc0-3f79a2d29d29';
     owner9_id UUID := '4441605e-87e3-4916-adc0-3f79a2d29d29';

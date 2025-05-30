@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS bookings (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 	-- TODO: adding booking number that can be generated when it created,
+  booking_no NUMERIC(8, 0) NOT NULL,
   car_id UUID , 
 	-- TODO:( fix this on prod) REFERENCES cars(id) NOT NULL,
   renter_id UUID NOT NULL,
