@@ -1,7 +1,14 @@
 -- TODO: will add pagenation using LIMIT and OFFSET
 
 -- name: ListCars :many
-SELECT id, owner_id, thumbnail_picture, description, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year;
+SELECT 
+    id, owner_id, thumbnail_picture, description, make, model, year,
+    license_plate, vin_number, transmission, fuel_type, mileage,
+    location, price_per_hour, status,
+    COUNT(*) OVER() as total_count
+FROM cars 
+ORDER BY year, id
+LIMIT $1 OFFSET $2;
 
 -- name: GetCar :one
 SELECT id, owner_id, thumbnail_picture,make, description, model, year, license_plate, vin_number, transmission, fuel_type, mileage, location, price_per_hour, status FROM cars WHERE id = $1 LIMIT 1;

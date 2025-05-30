@@ -123,8 +123,20 @@ func (q *Queries) InsertCar(ctx context.Context, arg InsertCarParams) (Car, erro
 
 const listCars = `-- name: ListCars :many
 
-SELECT id, owner_id, thumbnail_picture, description, make, model, year, license_plate, vin_number, transmission,fuel_type, mileage, location, price_per_hour, status FROM cars ORDER BY year
+SELECT 
+    id, owner_id, thumbnail_picture, description, make, model, year,
+    license_plate, vin_number, transmission, fuel_type, mileage,
+    location, price_per_hour, status,
+    COUNT(*) OVER() as total_count
+FROM cars 
+ORDER BY year, id
+LIMIT $1 OFFSET $2
 `
+
+type ListCarsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 type ListCarsRow struct {
 	ID               uuid.UUID         `json:"id"`
@@ -142,11 +154,12 @@ type ListCarsRow struct {
 	Location         go_postgis.PointS `json:"location"`
 	PricePerHour     pgtype.Numeric    `json:"price_per_hour"`
 	Status           StatusType        `json:"status"`
+	TotalCount       int64             `json:"total_count"`
 }
 
 // TODO: will add pagenation using LIMIT and OFFSET
-func (q *Queries) ListCars(ctx context.Context) ([]ListCarsRow, error) {
-	rows, err := q.db.Query(ctx, listCars)
+func (q *Queries) ListCars(ctx context.Context, arg ListCarsParams) ([]ListCarsRow, error) {
+	rows, err := q.db.Query(ctx, listCars, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +183,7 @@ func (q *Queries) ListCars(ctx context.Context) ([]ListCarsRow, error) {
 			&i.Location,
 			&i.PricePerHour,
 			&i.Status,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}

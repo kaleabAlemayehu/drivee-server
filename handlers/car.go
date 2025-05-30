@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -12,7 +13,28 @@ import (
 )
 
 func (h *handler) HandleGetAllCars(w http.ResponseWriter, r *http.Request) {
-	cars, err := h.query.ListCars(r.Context())
+	var params model.ListCarsParams
+	queries := r.URL.Query()
+	if limit, err := strconv.Atoi(queries.Get("limit")); limit > 0 && err == nil {
+		params.Limit = int32(limit)
+		log.Printf("limit %v\n", params.Limit)
+	} else {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "limit query is not provided correctly")
+		return
+	}
+
+	if offset, err := strconv.Atoi(queries.Get("offset")); offset >= 0 && err == nil {
+		params.Offset = int32(offset)
+		log.Printf("offset %v\n", params.Limit)
+	} else {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "offset query is not provided correctly")
+		return
+	}
+	cars, err := h.query.ListCars(r.Context(), params)
+	log.Println("carvalues:", cars)
+
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch cars")
