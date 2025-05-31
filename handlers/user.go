@@ -33,13 +33,13 @@ func (h *handler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
 		return
 	}
-	owner, err := h.query.GetUser(r.Context(), id)
+	user, err := h.query.GetUserByID(r.Context(), id)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to fetch owner")
 		return
 	}
-	if err := utils.SendResponse(w, "success", http.StatusOK, owner); err != nil {
+	if err := utils.SendResponse(w, "success", http.StatusOK, user); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send owner")
 		return

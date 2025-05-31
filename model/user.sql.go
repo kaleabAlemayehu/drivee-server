@@ -12,12 +12,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getUser = `-- name: GetUser :one
+const getMe = `-- name: GetMe :one
 SELECT id, first_name, middle_name, last_name, email, password, driver_license, is_owner, is_renter, phone_number, account_number, bank_name, profile_picture  FROM users
 WHERE id = $1 LIMIT 1
 `
 
-type GetUserRow struct {
+type GetMeRow struct {
 	ID             uuid.UUID   `json:"id"`
 	FirstName      string      `json:"first_name"`
 	MiddleName     pgtype.Text `json:"middle_name"`
@@ -33,9 +33,9 @@ type GetUserRow struct {
 	ProfilePicture string      `json:"profile_picture"`
 }
 
-func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
-	row := q.db.QueryRow(ctx, getUser, id)
-	var i GetUserRow
+func (q *Queries) GetMe(ctx context.Context, id uuid.UUID) (GetMeRow, error) {
+	row := q.db.QueryRow(ctx, getMe, id)
+	var i GetMeRow
 	err := row.Scan(
 		&i.ID,
 		&i.FirstName,
@@ -49,6 +49,34 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error)
 		&i.PhoneNumber,
 		&i.AccountNumber,
 		&i.BankName,
+		&i.ProfilePicture,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, first_name, middle_name, last_name, email,  profile_picture  FROM users
+WHERE id = $1 LIMIT 1
+`
+
+type GetUserByIDRow struct {
+	ID             uuid.UUID   `json:"id"`
+	FirstName      string      `json:"first_name"`
+	MiddleName     pgtype.Text `json:"middle_name"`
+	LastName       pgtype.Text `json:"last_name"`
+	Email          string      `json:"email"`
+	ProfilePicture string      `json:"profile_picture"`
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i GetUserByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
 		&i.ProfilePicture,
 	)
 	return i, err
