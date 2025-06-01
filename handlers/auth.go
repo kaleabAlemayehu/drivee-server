@@ -11,26 +11,11 @@ import (
 
 	argon "github.com/alexedwards/argon2id"
 	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
+	"github.com/kaleabAlemayehu/drivee-server/dto"
 	"github.com/kaleabAlemayehu/drivee-server/model"
 	"github.com/kaleabAlemayehu/drivee-server/utils"
 	"github.com/kaleabAlemayehu/identicon"
 )
-
-type authResponse struct {
-	ID             uuid.UUID `json:"id"`
-	Email          string    `json:"email"`
-	FirstName      string    `json:"first_name"`
-	MiddleName     string    `json:"middle_name"`
-	LastName       string    `json:"last_name"`
-	ProfilePicture string    `json:"profile_picture"`
-	Token          string    `json:"token"`
-}
-
-type loginInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
 func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	var params model.InsertUserParams
@@ -82,7 +67,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res authResponse = authResponse{
+	var res dto.AuthResponse = dto.AuthResponse{
 		ID:             user.ID,
 		Email:          user.Email,
 		FirstName:      user.FirstName,
@@ -99,7 +84,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	var body loginInput
+	var body dto.LoginInput
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "all inputs are needed")
@@ -125,14 +110,21 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "invalid email or password")
 		return
 	}
+	var date int
+	if body.RememberMe {
+		date = 30
 
+	} else {
+
+		date = 7
+	}
 	// return new token and send it will the response
 	tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   user.ID,
 		"name":  user.FirstName,
 		"email": user.Email,
 		"iat":   time.Now().Unix(),
-		"exp":   time.Now().AddDate(0, 0, 7).Unix(),
+		"exp":   time.Now().AddDate(0, 0, date).Unix(),
 	})
 	token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
@@ -141,7 +133,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var res authResponse = authResponse{
+	var res dto.AuthResponse = dto.AuthResponse{
 		ID:             user.ID,
 		Email:          user.Email,
 		FirstName:      user.FirstName,
