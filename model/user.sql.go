@@ -33,6 +33,7 @@ type GetMeRow struct {
 	ProfilePicture string      `json:"profile_picture"`
 }
 
+// TODO: adding route and handler that can use getme
 func (q *Queries) GetMe(ctx context.Context, id uuid.UUID) (GetMeRow, error) {
 	row := q.db.QueryRow(ctx, getMe, id)
 	var i GetMeRow

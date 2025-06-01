@@ -17,3 +17,6 @@ type LoginInput struct {
 	Password   string `json:"password"`
 	RememberMe bool   `json:"rememberMe"`
 }
+type PasswordResetInput struct {
+	Email string `json:"email"`
+}

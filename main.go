@@ -113,6 +113,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/register", handler.HandleRegister)
 	mux.HandleFunc("POST /api/login", handler.HandleLogin)
+	mux.HandleFunc("POST /api/reset-password", handler.HandleResetPassword)
 	// TODO: may get rid of after move to cloudnary
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 	mux.Handle("/api/users/", http.StripPrefix("/api/users", secure(userRouter)))

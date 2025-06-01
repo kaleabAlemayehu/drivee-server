@@ -13,5 +13,5 @@
 
 -- +goose Down
 -- +goose StatementBegin
-TRUNCATE TABLE users CASCADE;
+-- TRUNCATE TABLE users CASCADE;
 -- +goose StatementEnd

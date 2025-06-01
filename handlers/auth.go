@@ -149,3 +149,57 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
+	// TODO: add rate limiter
+	var input dto.PasswordResetInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "We'll send a reset email if the account exists")
+		return
+	}
+
+	user, err := h.query.GetUserByEmail(r.Context(), input.Email)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusNoContent, "We'll send a reset email if the account exists")
+		return
+	}
+	token, hashed, err := utils.GenerateToken()
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
+		return
+	}
+	// log.Println( user)
+	log.Println("token:", token)
+	log.Println("hashed:", hashed)
+
+	var params = model.InsertTokenParams{
+		Token:     hashed,
+		ExpiresAt: int32(time.Now().Add(time.Hour * 6).Unix()),
+		UserID:    user.ID,
+	}
+
+	_, err = h.query.InsertToken(r.Context(), params)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
+		return
+	}
+	url := fmt.Sprintf("http://localhost:5173/reset-password/%s", token)
+	if err := utils.SendEmail(user.Email, url); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
+		return
+	}
+	utils.SendResponse(w, "success", http.StatusOK, "We'll send a reset email if the account exists")
+	return
+
+	// INFO:
+	// fetch user by using the email
+	// check if it is valid user email
+	// if it is not valid return vague text about sending verification token
+	// if it is valid generate token and add on token page with expireddate
+	// send token with template with as a link for the client
+}

@@ -383,6 +383,12 @@ type Review struct {
 	UpdatedAt  pgtype.Timestamp `json:"updated_at"`
 }
 
+type Token struct {
+	Token     string    `json:"token"`
+	ExpiresAt int32     `json:"expires_at"`
+	UserID    uuid.UUID `json:"user_id"`
+}
+
 type Transaction struct {
 	ID           uuid.UUID        `json:"id"`
 	RenterID     uuid.UUID        `json:"renter_id"`
