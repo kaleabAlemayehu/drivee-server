@@ -187,19 +187,15 @@ func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
 		return
 	}
-	url := fmt.Sprintf("http://localhost:5173/reset-password/%s", token)
-	if err := utils.SendEmail(user.Email, url); err != nil {
+
+	clientAddr := os.Getenv("CLIENT_ADDR")
+	url := fmt.Sprintf("%s/reset-password/?token=%s", clientAddr, token)
+
+	if err := utils.SendEmail(user.Email, user.FirstName, url); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
 		return
 	}
 	utils.SendResponse(w, "success", http.StatusOK, "We'll send a reset email if the account exists")
 	return
-
-	// INFO:
-	// fetch user by using the email
-	// check if it is valid user email
-	// if it is not valid return vague text about sending verification token
-	// if it is valid generate token and add on token page with expireddate
-	// send token with template with as a link for the client
 }
