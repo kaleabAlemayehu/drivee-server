@@ -12,8 +12,8 @@ import (
 
 func SendEmail(email string, userName string, url string) error {
 	host := os.Getenv("SMTP_HOST")
-	from := os.Getenv("GMAIL_USERNAME")
-	password := os.Getenv("GMAIL_PASSWORD")
+	from := os.Getenv("MAIL_USERNAME")
+	password := os.Getenv("MAIL_PASSWORD")
 	var buf bytes.Buffer
 	template.ResetPasswordEmail(userName, url).Render(context.Background(), &buf)
 
