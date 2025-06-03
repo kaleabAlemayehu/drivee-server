@@ -20,3 +20,7 @@ type LoginInput struct {
 type PasswordResetInput struct {
 	Email string `json:"email"`
 }
+
+type VerifyTokenInput struct {
+	Token string `json:"token"`
+}

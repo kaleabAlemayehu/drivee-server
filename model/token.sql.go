@@ -11,6 +11,22 @@ import (
 	"github.com/google/uuid"
 )
 
+const getToken = `-- name: GetToken :one
+SELECT token, expires_at, user_id FROM token WHERE token = $1 AND expires_at > $2
+`
+
+type GetTokenParams struct {
+	Token     string `json:"token"`
+	ExpiresAt int32  `json:"expires_at"`
+}
+
+func (q *Queries) GetToken(ctx context.Context, arg GetTokenParams) (Token, error) {
+	row := q.db.QueryRow(ctx, getToken, arg.Token, arg.ExpiresAt)
+	var i Token
+	err := row.Scan(&i.Token, &i.ExpiresAt, &i.UserID)
+	return i, err
+}
+
 const insertToken = `-- name: InsertToken :one
 INSERT INTO token(token ,expires_at ,user_id ) VAlUES ($1, $2, $3) RETURNING token, expires_at, user_id
 `

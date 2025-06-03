@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -197,5 +199,29 @@ func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.SendResponse(w, "success", http.StatusOK, "We'll send a reset email if the account exists")
+	return
+}
+
+func (h *handler) HandleVerifyToken(w http.ResponseWriter, r *http.Request) {
+	var body dto.VerifyTokenInput
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	hash := sha256.Sum256([]byte(body.Token))
+	hashed := hex.EncodeToString(hash[:])
+	param := model.GetTokenParams{
+		Token:     hashed,
+		ExpiresAt: int32(time.Now().Unix()),
+	}
+	token, err := h.query.GetToken(r.Context(), param)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+
+	utils.SendResponse(w, "success", http.StatusOK, token)
 	return
 }
