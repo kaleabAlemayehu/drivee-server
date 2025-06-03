@@ -17,10 +17,16 @@ type LoginInput struct {
 	Password   string `json:"password"`
 	RememberMe bool   `json:"rememberMe"`
 }
-type PasswordResetInput struct {
+type ResetRequestInput struct {
 	Email string `json:"email"`
 }
 
 type VerifyTokenInput struct {
 	Token string `json:"token"`
+}
+
+type PasswordResetInput struct {
+	Token    string `json:"token"`
+	UserID   string `json:"userID"`
+	Password string `json:"password"`
 }

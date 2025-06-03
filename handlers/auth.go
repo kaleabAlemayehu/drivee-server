@@ -152,9 +152,9 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
+func (h *handler) HandleRequestReset(w http.ResponseWriter, r *http.Request) {
 	// TODO: add rate limiter
-	var input dto.PasswordResetInput
+	var input dto.ResetRequestInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "We'll send a reset email if the account exists")
@@ -218,10 +218,20 @@ func (h *handler) HandleVerifyToken(w http.ResponseWriter, r *http.Request) {
 	token, err := h.query.GetToken(r.Context(), param)
 	if err != nil {
 		log.Println(err.Error())
-		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		utils.SendResponse(w, "error", http.StatusBadRequest, "token expired request a new one")
 		return
 	}
 
 	utils.SendResponse(w, "success", http.StatusOK, token)
 	return
+}
+
+func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
+	var params dto.PasswordResetInput
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+
 }

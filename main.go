@@ -113,6 +113,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/register", handler.HandleRegister)
 	mux.HandleFunc("POST /api/login", handler.HandleLogin)
+	mux.HandleFunc("POST /api/request-reset", handler.HandleRequestReset)
 	mux.HandleFunc("POST /api/reset-password", handler.HandleResetPassword)
 	mux.HandleFunc("POST /api/verify-token", handler.HandleVerifyToken)
 
