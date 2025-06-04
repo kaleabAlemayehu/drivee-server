@@ -26,7 +26,7 @@ type VerifyTokenInput struct {
 }
 
 type PasswordResetInput struct {
-	Token    string `json:"token"`
-	UserID   string `json:"userID"`
-	Password string `json:"password"`
+	Token    string    `json:"token"`
+	UserID   uuid.UUID `json:"userID"`
+	Password string    `json:"password"`
 }

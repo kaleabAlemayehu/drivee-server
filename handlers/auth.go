@@ -164,7 +164,7 @@ func (h *handler) HandleRequestReset(w http.ResponseWriter, r *http.Request) {
 	user, err := h.query.GetUserByEmail(r.Context(), input.Email)
 	if err != nil {
 		log.Println(err.Error())
-		utils.SendResponse(w, "error", http.StatusNoContent, "We'll send a reset email if the account exists")
+		utils.SendResponse(w, "error", http.StatusBadRequest, "We'll send a reset email if the account exists")
 		return
 	}
 	token, hashed, err := utils.GenerateToken()
@@ -174,8 +174,6 @@ func (h *handler) HandleRequestReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// log.Println( user)
-	log.Println("token:", token)
-	log.Println("hashed:", hashed)
 
 	var params = model.InsertTokenParams{
 		Token:     hashed,
@@ -221,6 +219,11 @@ func (h *handler) HandleVerifyToken(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "token expired request a new one")
 		return
 	}
+	now := int32(time.Now().Unix())
+	if token.ExpiresAt <= now {
+		utils.SendResponse(w, "error", http.StatusBadRequest, "token expired request a new one")
+		return
+	}
 
 	utils.SendResponse(w, "success", http.StatusOK, token)
 	return
@@ -234,4 +237,49 @@ func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	args := model.GetTokenParams{
+		Token:     params.Token,
+		ExpiresAt: int32(time.Now().Unix()),
+	}
+
+	_, err := h.query.GetToken(r.Context(), args)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "token expired request a new one")
+		return
+	}
+
+	deleteParams := model.DeleteTokenParams{
+		Token:  params.Token,
+		UserID: params.UserID,
+	}
+
+	if err := h.query.DeleteToken(r.Context(), deleteParams); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "token expired request a new one")
+		return
+	}
+
+	hashedPass, err := argon.CreateHash(params.Password, argon.DefaultParams)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to update the new password")
+		return
+
+	}
+
+	input := model.UpdateUserPasswordByIDParams{
+		ID:       params.UserID,
+		Password: hashedPass,
+	}
+
+	if err := h.query.UpdateUserPasswordByID(r.Context(), input); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to update the new password")
+		return
+
+	}
+	utils.SendResponse(w, "success", http.StatusOK, "successfully updated the new password")
+
+	return
 }

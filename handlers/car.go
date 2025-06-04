@@ -135,9 +135,10 @@ func (h *handler) HandleInsertCar(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
 	ownerID, err := uuid.Parse(r.Context().Value("userID").(string))
+	// TODO: fix this
 	if err != nil {
 		log.Println(err.Error())
-		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
+		utils.SendResponse(w, "error", http.StatusUnauthorized, "unauthorize")
 		return
 	}
 	id, err := uuid.Parse(r.PathValue("id"))
@@ -146,6 +147,8 @@ func (h *handler) HandleUpdateCar(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
 		return
 	}
+
+	// FIXME: put it on dto
 	var body struct {
 		Mileage  int32 `json:"mileage"`
 		Location struct {

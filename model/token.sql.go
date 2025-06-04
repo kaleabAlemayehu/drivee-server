@@ -11,6 +11,20 @@ import (
 	"github.com/google/uuid"
 )
 
+const deleteToken = `-- name: DeleteToken :exec
+DELETE FROM token WHERE token=$1 AND user_id =$2
+`
+
+type DeleteTokenParams struct {
+	Token  string    `json:"token"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
+func (q *Queries) DeleteToken(ctx context.Context, arg DeleteTokenParams) error {
+	_, err := q.db.Exec(ctx, deleteToken, arg.Token, arg.UserID)
+	return err
+}
+
 const getToken = `-- name: GetToken :one
 SELECT token, expires_at, user_id FROM token WHERE token = $1 AND expires_at > $2
 `
