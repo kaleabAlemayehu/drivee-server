@@ -122,6 +122,45 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, e
 	return i, err
 }
 
+const insertUserSSO = `-- name: InsertUserSSO :one
+INSERT INTO users (first_name, last_name, email, profile_picture) VALUES ( $1, $2, $3, $4 ) RETURNING id, first_name, middle_name, last_name, email, profile_picture, password, driver_license, phone_number, account_number, bank_name, is_owner, is_renter, created_at, updated_at
+`
+
+type InsertUserSSOParams struct {
+	FirstName      string      `json:"first_name"`
+	LastName       pgtype.Text `json:"last_name"`
+	Email          string      `json:"email"`
+	ProfilePicture string      `json:"profile_picture"`
+}
+
+func (q *Queries) InsertUserSSO(ctx context.Context, arg InsertUserSSOParams) (User, error) {
+	row := q.db.QueryRow(ctx, insertUserSSO,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.ProfilePicture,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.ProfilePicture,
+		&i.Password,
+		&i.DriverLicense,
+		&i.PhoneNumber,
+		&i.AccountNumber,
+		&i.BankName,
+		&i.IsOwner,
+		&i.IsRenter,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listUser = `-- name: ListUser :many
 SELECT id, first_name, middle_name, last_name, email, driver_license, is_owner, is_renter, phone_number,account_number, bank_name, profile_picture FROM users
 ORDER BY email

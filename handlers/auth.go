@@ -13,6 +13,7 @@ import (
 
 	argon "github.com/alexedwards/argon2id"
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaleabAlemayehu/drivee-server/dto"
 	"github.com/kaleabAlemayehu/drivee-server/model"
 	"github.com/kaleabAlemayehu/drivee-server/utils"
@@ -53,7 +54,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "email is already taken")
 		return
 	}
-	// generate jwt token and attack to response
+	// generate jwt token and attach to response
 	tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   user.ID,
 		"name":  user.FirstName,
@@ -282,4 +283,122 @@ func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 	utils.SendResponse(w, "success", http.StatusOK, "successfully updated the new password")
 
 	return
+}
+
+func (h *handler) HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
+	var params dto.GoogleBody
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+	// Initialize verifier (should be a global instance in real app)
+	verifier := utils.NewGoogleTokenVerifier(os.Getenv("GOOGLE_CLIENT_ID"))
+
+	// Verify token
+	claims, err := verifier.VerifyToken(params.Token)
+	if err != nil {
+		log.Println(err.Error())
+		utils.SendResponse(w, "error", http.StatusBadRequest, "bad request")
+		return
+	}
+
+	user, err := h.query.GetUserByEmail(r.Context(), claims.Email)
+	if err != nil {
+		var lastName pgtype.Text
+		if claims.LastName != "" {
+			lastName = pgtype.Text{
+				String: claims.LastName,
+				Valid:  true,
+			}
+		} else {
+			lastName = pgtype.Text{
+				String: claims.LastName,
+				Valid:  false,
+			}
+
+		}
+		params := model.InsertUserSSOParams{
+			FirstName:      claims.FirstName,
+			Email:          claims.Email,
+			ProfilePicture: claims.Picture,
+			LastName:       lastName,
+		}
+		user, err := h.query.InsertUserSSO(r.Context(), params)
+		if err != nil {
+			log.Println(err.Error())
+			utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to signup the user")
+			return
+		}
+
+		// generate jwt token and attach to response
+		tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub":   user.ID,
+			"name":  user.FirstName,
+			"email": user.Email,
+			"iat":   time.Now().Unix(),
+			"exp":   time.Now().AddDate(0, 0, 7).Unix(),
+		})
+		token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+		if err != nil {
+			log.Println(err.Error())
+			utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		var res dto.AuthResponse = dto.AuthResponse{
+			ID:             user.ID,
+			Email:          user.Email,
+			FirstName:      user.FirstName,
+			MiddleName:     user.MiddleName.String,
+			ProfilePicture: user.ProfilePicture,
+			Token:          token,
+		}
+
+		if err := utils.SendResponse(w, "success", http.StatusCreated, res); err != nil {
+			log.Println(err.Error())
+			utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
+			return
+		}
+		return
+	} else {
+		// there is user so
+		if user.Password != "" {
+			log.Println("user already exist with password auth")
+			utils.SendResponse(w, "error", http.StatusBadRequest, "email already exist use email and password instead.")
+			return
+		}
+		// generate jwt token and attach to response
+		tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub":   user.ID,
+			"name":  user.FirstName,
+			"email": user.Email,
+			"iat":   time.Now().Unix(),
+			"exp":   time.Now().AddDate(0, 0, 7).Unix(),
+		})
+		token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+		if err != nil {
+			log.Println(err.Error())
+			utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		var res dto.AuthResponse = dto.AuthResponse{
+			ID:             user.ID,
+			Email:          user.Email,
+			FirstName:      user.FirstName,
+			MiddleName:     user.MiddleName.String,
+			ProfilePicture: user.ProfilePicture,
+			Token:          token,
+		}
+
+		if err := utils.SendResponse(w, "success", http.StatusCreated, res); err != nil {
+			log.Println(err.Error())
+			utils.SendResponse(w, "error", http.StatusInternalServerError, "unable to send data")
+			return
+		}
+		return
+	}
 }

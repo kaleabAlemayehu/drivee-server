@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
+	"log"
 	"math/big"
 	"net/http"
 	"sync"
@@ -25,6 +26,8 @@ type GoogleClaims struct {
 	EmailVerified bool   `json:"email_verified"`
 	Name          string `json:"name"`
 	Picture       string `json:"picture"`
+	FirstName     string `json:"given_name"`
+	LastName      string `json:"family_name"`
 	jwt.RegisteredClaims
 }
 
@@ -75,7 +78,7 @@ func (v *GoogleTokenVerifier) VerifyToken(tokenString string) (*GoogleClaims, er
 
 	// Parse and verify token
 	claims := &GoogleClaims{}
-	token, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		return publicKey, nil
 	})
 	if err != nil {
@@ -96,11 +99,12 @@ func (v *GoogleTokenVerifier) validateClaims(claims *GoogleClaims) error {
 	if claims.Issuer != googleIssuer && claims.Issuer != "accounts.google.com" {
 		return errors.New("invalid issuer")
 	}
+	log.Println(claims.Audience)
 
 	// Validate audience
-	// if !claims.Audience.Contains(v.clientID) {
-	// 	return errors.New("invalid audience")
-	// }
+	if claims.Audience[0] != v.clientID || len(claims.Audience) != 1 {
+		return errors.New("invalid audience")
+	}
 
 	// Validate expiration
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
