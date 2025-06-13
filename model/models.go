@@ -408,7 +408,7 @@ type User struct {
 	LastName       pgtype.Text      `json:"last_name"`
 	Email          string           `json:"email"`
 	ProfilePicture string           `json:"profile_picture"`
-	Password       string           `json:"password"`
+	Password       pgtype.Text      `json:"password"`
 	DriverLicense  pgtype.Text      `json:"driver_license"`
 	PhoneNumber    pgtype.Text      `json:"phone_number"`
 	AccountNumber  pgtype.Text      `json:"account_number"`

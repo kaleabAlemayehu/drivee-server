@@ -23,7 +23,7 @@ type GetMeRow struct {
 	MiddleName     pgtype.Text `json:"middle_name"`
 	LastName       pgtype.Text `json:"last_name"`
 	Email          string      `json:"email"`
-	Password       string      `json:"password"`
+	Password       pgtype.Text `json:"password"`
 	DriverLicense  pgtype.Text `json:"driver_license"`
 	IsOwner        pgtype.Bool `json:"is_owner"`
 	IsRenter       pgtype.Bool `json:"is_renter"`
@@ -88,10 +88,10 @@ INSERT INTO users (first_name, email, password, profile_picture) VALUES ( $1, $2
 `
 
 type InsertUserParams struct {
-	FirstName      string `json:"first_name"`
-	Email          string `json:"email"`
-	Password       string `json:"password"`
-	ProfilePicture string `json:"profile_picture"`
+	FirstName      string      `json:"first_name"`
+	Email          string      `json:"email"`
+	Password       pgtype.Text `json:"password"`
+	ProfilePicture string      `json:"profile_picture"`
 }
 
 func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, error) {
@@ -225,7 +225,7 @@ type UpdateUserParams struct {
 	MiddleName     pgtype.Text `json:"middle_name"`
 	LastName       pgtype.Text `json:"last_name"`
 	Email          string      `json:"email"`
-	Password       string      `json:"password"`
+	Password       pgtype.Text `json:"password"`
 	PhoneNumber    pgtype.Text `json:"phone_number"`
 	AccountNumber  pgtype.Text `json:"account_number"`
 	BankName       pgtype.Text `json:"bank_name"`

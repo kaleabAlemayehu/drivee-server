@@ -28,7 +28,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// hash the password
-	hashedPass, err := argon.CreateHash(params.Password, argon.DefaultParams)
+	hashedPass, err := argon.CreateHash(params.Password.String, argon.DefaultParams)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
@@ -46,7 +46,7 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	user, err := h.query.InsertUser(r.Context(), model.InsertUserParams{
 		FirstName:      params.FirstName,
 		Email:          params.Email,
-		Password:       hashedPass,
+		Password:       pgtype.Text{String: hashedPass, Valid: true},
 		ProfilePicture: profPic,
 	})
 	if err != nil {
@@ -101,7 +101,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	match, err := argon.ComparePasswordAndHash(body.Password, user.Password)
+	match, err := argon.ComparePasswordAndHash(body.Password, user.Password.String)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusBadRequest, "invalid email or password")
@@ -271,7 +271,7 @@ func (h *handler) HandleResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	input := model.UpdateUserPasswordByIDParams{
 		ID:       params.UserID,
-		Password: hashedPass,
+		Password: pgtype.Text{String: hashedPass, Valid: true},
 	}
 
 	if err := h.query.UpdateUserPasswordByID(r.Context(), input); err != nil {
@@ -318,6 +318,7 @@ func (h *handler) HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 			}
 
 		}
+
 		params := model.InsertUserSSOParams{
 			FirstName:      claims.FirstName,
 			Email:          claims.Email,
@@ -363,8 +364,7 @@ func (h *handler) HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else {
-		// there is user so
-		if user.Password != "" {
+		if user.Password.String != "" || user.Password.Valid {
 			log.Println("user already exist with password auth")
 			utils.SendResponse(w, "error", http.StatusBadRequest, "email already exist use email and password instead.")
 			return

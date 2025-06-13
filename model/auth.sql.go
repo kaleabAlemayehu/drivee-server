@@ -22,7 +22,7 @@ type GetUserByEmailRow struct {
 	MiddleName     pgtype.Text `json:"middle_name"`
 	LastName       pgtype.Text `json:"last_name"`
 	Email          string      `json:"email"`
-	Password       string      `json:"password"`
+	Password       pgtype.Text `json:"password"`
 	ProfilePicture string      `json:"profile_picture"`
 }
 
@@ -46,8 +46,8 @@ UPDATE users  set password = $2 WHERE id = $1
 `
 
 type UpdateUserPasswordByIDParams struct {
-	ID       uuid.UUID `json:"id"`
-	Password string    `json:"password"`
+	ID       uuid.UUID   `json:"id"`
+	Password pgtype.Text `json:"password"`
 }
 
 func (q *Queries) UpdateUserPasswordByID(ctx context.Context, arg UpdateUserPasswordByIDParams) error {

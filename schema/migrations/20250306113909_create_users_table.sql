@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_name TEXT ,
   email TEXT NOT NULL UNIQUE,
   profile_picture TEXT NOT NULL,
-  password TEXT NOT NULL,
+  password TEXT,
   driver_license  TEXT,
   phone_number TEXT,
   account_number TEXT,
