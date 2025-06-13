@@ -12,7 +12,6 @@ import (
 	"time"
 
 	argon "github.com/alexedwards/argon2id"
-	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaleabAlemayehu/drivee-server/dto"
 	"github.com/kaleabAlemayehu/drivee-server/model"
@@ -54,16 +53,8 @@ func (h *handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "email is already taken")
 		return
 	}
-	// generate jwt token and attach to response
-	tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   user.ID,
-		"name":  user.FirstName,
-		"email": user.Email,
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().AddDate(0, 0, 7).Unix(),
-	})
-	token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
+	token, err := utils.GenerateJWT(user.ID, user.FirstName, user.Email, false)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
@@ -113,23 +104,7 @@ func (h *handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusBadRequest, "invalid email or password")
 		return
 	}
-	var date int
-	if body.RememberMe {
-		date = 30
-
-	} else {
-
-		date = 7
-	}
-	// return new token and send it will the response
-	tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":   user.ID,
-		"name":  user.FirstName,
-		"email": user.Email,
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().AddDate(0, 0, date).Unix(),
-	})
-	token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	token, err := utils.GenerateJWT(user.ID, user.FirstName, user.Email, true)
 	if err != nil {
 		log.Println(err.Error())
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
@@ -174,7 +149,6 @@ func (h *handler) HandleRequestReset(w http.ResponseWriter, r *http.Request) {
 		utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
 		return
 	}
-	// log.Println( user)
 
 	var params = model.InsertTokenParams{
 		Token:     hashed,
@@ -332,16 +306,7 @@ func (h *handler) HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// generate jwt token and attach to response
-		tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"sub":   user.ID,
-			"name":  user.FirstName,
-			"email": user.Email,
-			"iat":   time.Now().Unix(),
-			"exp":   time.Now().AddDate(0, 0, 7).Unix(),
-		})
-		token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
-
+		token, err := utils.GenerateJWT(user.ID, user.FirstName, user.Email, false)
 		if err != nil {
 			log.Println(err.Error())
 			utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
@@ -369,16 +334,8 @@ func (h *handler) HandleGoogleAuth(w http.ResponseWriter, r *http.Request) {
 			utils.SendResponse(w, "error", http.StatusBadRequest, "email already exist use email and password instead.")
 			return
 		}
-		// generate jwt token and attach to response
-		tokenStr := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"sub":   user.ID,
-			"name":  user.FirstName,
-			"email": user.Email,
-			"iat":   time.Now().Unix(),
-			"exp":   time.Now().AddDate(0, 0, 7).Unix(),
-		})
-		token, err := tokenStr.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
+		token, err := utils.GenerateJWT(user.ID, user.FirstName, user.Email, false)
 		if err != nil {
 			log.Println(err.Error())
 			utils.SendResponse(w, "error", http.StatusInternalServerError, "internal server error")
