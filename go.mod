@@ -5,6 +5,7 @@ go 1.24.1
 require (
 	github.com/a-h/templ v0.3.887
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
 	github.com/cridenour/go-postgis v1.0.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	memcache "github.com/bradfitz/gomemcache/memcache"
 	"github.com/joho/godotenv"
 	connection "github.com/kaleabAlemayehu/drivee-server/connection"
 	"github.com/kaleabAlemayehu/drivee-server/handlers"
@@ -25,6 +26,7 @@ func main() {
 		log.Printf("port is not specified\n running on default port :%d \n", port)
 	}
 	pool := connection.DBConnect(os.Getenv("GOOSE_DBSTRING"))
+	cache := memcache.New("localhost:11211")
 	defer pool.Close()
 
 	c := cors.New(cors.Options{
@@ -38,7 +40,7 @@ func main() {
 		// Debug:            true,
 	})
 
-	handler := handlers.NewHandler(pool)
+	handler := handlers.NewHandler(pool, cache)
 	secure := middleware.CreateStack(
 		middleware.Auth,
 	)
